@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - Bull Prime Premium Admin</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--admin-border);
+            padding-bottom: 1rem;
+        }
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            color: var(--admin-text-muted);
+            border-bottom: 2px solid transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .tab-btn.active {
+            color: var(--admin-accent);
+            border-bottom-color: var(--admin-accent);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s var(--ease-cinematic);
+        }
+        .lines-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .line-card {
+            position: relative;
+            height: 200px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .line-card-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            transition: transform 0.5s var(--ease-cinematic);
+        }
+        .line-card:hover .line-card-bg {
+            transform: scale(1.05);
+        }
+        .line-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 2;
+        }
+        .line-card-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+        }
+        .line-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            z-index: 4;
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="/public/logo.png" style="height:40px; filter: drop-shadow(0 0 10px rgba(196,139,113,0.5));" alt="Bull Prime">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">PRINCIPAL</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="pages.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Páginas</a>
+                <a href="media.html" class="sidebar-link"><i class="fas fa-images"></i> Mídia</a>
+                
+                <div class="sidebar-section-label">CONTEÚDO</div>
+                <a href="blog.html" class="sidebar-link"><i class="fas fa-blog"></i> Blog</a>
+                <a href="cuts.html" class="sidebar-link active"><i class="fas fa-drumstick-bite"></i> Catálogo</a>
+                
+                <div class="sidebar-section-label">NEGÓCIOS</div>
+                <a href="units.html" class="sidebar-link"><i class="fas fa-store"></i> Unidades</a>
+                <a href="events.html" class="sidebar-link"><i class="fas fa-calendar-alt"></i> Eventos</a>
+                <a href="contacts.html" class="sidebar-link"><i class="fas fa-envelope"></i> Mensagens</a>
+                
+                <div class="sidebar-section-label">SISTEMA</div>
+                <a href="settings.html" class="sidebar-link"><i class="fas fa-cog"></i> Configurações</a>
+                <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <div class="admin-topbar">
+                <h2>Catálogo</h2>
+                <div class="flex gap-1">
+                    <button class="btn btn-secondary" onclick="openLineModal()"><i class="fas fa-plus"></i> Nova Linha</button>
+                    <button class="btn btn-primary" onclick="openCutModal()"><i class="fas fa-plus"></i> Novo Corte</button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('lines')">Linhas de Produto</button>
+                <button class="tab-btn" onclick="switchTab('cuts')">Cortes</button>
+            </div>
+
+            <div id="tab-lines" class="tab-content active">
+                <div id="linesGrid" class="lines-grid">
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-cuts" class="tab-content">
+                <div class="admin-card" style="padding: 0; overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Linha</th>
+                                <th>Preço</th>
+                                <th>Peso</th>
+                                <th>Destaque</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cutsTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center"><div class="loading-spinner" style="margin:auto;"></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Line Modal -->
+    <div class="modal-overlay" id="lineModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="lineModalTitle">Nova Linha</h3>
+                <button class="btn-icon" onclick="closeLineModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="lineForm">
+                    <input type="hidden" id="lineId">
+                    <div class="form-group">
+                        <label class="form-label">Nome</label>
+                        <input type="text" id="lineName" class="form-input" required oninput="generateLineSlug()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Slug</label>
+                        <input type="text" id="lineSlug" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL da Imagem</label>
+                        <input type="url" id="lineImage" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrição</label>
+                        <textarea id="lineDesc" class="form-textarea" style="min-height: 80px;"></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Ordem (Sort)</label>
+                            <input type="number" id="lineSort" class="form-input" value="0">
+                        </div>
+                        <div class="form-group" style="flex: 1; align-items: center; flex-direction: row; justify-content: space-between; margin-top: 1.5rem;">
+                            <label class="form-label">Ativo?</label>
+                            <label class="form-switch">
+                                <input type="checkbox" id="lineActive" checked>
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLineModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveLine()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cut Modal -->
+    <div class="modal-overlay" id="cutModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="cutModalTitle">Novo Corte</h3>
+                <button class="btn-icon" onclick="closeCutModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="cutForm">
+                    <input type="hidden" id="cutId">
+                    <div class="flex gap-2">
+                        <div class="form-group" style="flex: 2;">
+                            <label class="form-label">Nome do Corte</label>
+                            <input type="text" id="cutName" class="form-input" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Linha</label>
+                            <select id="cutLineId" class="form-select" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL da Imagem</label>
+                        <input type="url" id="cutImage" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrição</label>
+                        <textarea id="cutDesc" class="form-textarea" style="min-height: 80px;"></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Preço (Range/Texto)</label>
+                            <input type="text" id="cutPrice" class="form-input" placeholder="Ex: R$ 120 - R$ 150">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Peso (Aprox)</label>
+                            <input type="text" id="cutWeight" class="form-input" placeholder="Ex: 500g">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Ordem</label>
+                            <input type="number" id="cutSort" class="form-input" value="0">
+                        </div>
+                    </div>
+                    <div class="flex gap-2" style="margin-top: 1rem;">
+                        <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; flex: 1;">
+                            <label class="form-label">Destaque?</label>
+                            <label class="form-switch">
+                                <input type="checkbox" id="cutFeatured">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; flex: 1;">
+                            <label class="form-label">Ativo?</label>
+                            <label class="form-switch">
+                                <input type="checkbox" id="cutActive" checked>
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCutModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveCut()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let linesData = [];
+
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+
+        function generateLineSlug() {
+            const title = document.getElementById('lineName').value;
+            const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            document.getElementById('lineSlug').value = slug;
+        }
+
+        // --- LINE CRUD ---
+        async function loadLines() {
+            const grid = document.getElementById('linesGrid');
+            const { data, error } = await supabase.from('product_lines').select('*').order('sort_order', { ascending: true });
+            
+            if (error) {
+                grid.innerHTML = '<div class="empty-state">Erro ao carregar.</div>';
+                return;
+            }
+            linesData = data || [];
+            updateLineDropdown();
+
+            if (linesData.length === 0) {
+                grid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;">Nenhuma linha encontrada.</div>';
+                return;
+            }
+
+            grid.innerHTML = linesData.map(line => `
+                <div class="admin-card line-card" style="padding:0;">
+                    <div class="line-card-bg" style="background-image: url('${line.image_url || '/public/placeholder.jpg'}')"></div>
+                    <div class="line-card-overlay"></div>
+                    <div class="line-actions">
+                        <button class="btn-icon" style="background: rgba(0,0,0,0.5);" onclick='openLineModal(${JSON.stringify(line).replace(/'/g, "&#39;")})'><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon" style="background: rgba(248,113,113,0.5); color: #f87171;" onclick="deleteLine('${line.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="line-card-content">
+                        <h3 style="font-family: 'Restweek', serif; font-size: 1.5rem; letter-spacing: 2px; color: var(--admin-accent);">${line.name}</h3>
+                        <div class="mt-1">
+                            <span class="badge ${line.is_active ? 'success' : 'warning'}">${line.is_active ? 'Ativa' : 'Inativa'}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openLineModal(line = null) {
+            document.getElementById('lineModalTitle').innerText = line ? 'Editar Linha' : 'Nova Linha';
+            if (line) {
+                document.getElementById('lineId').value = line.id;
+                document.getElementById('lineName').value = line.name || '';
+                document.getElementById('lineSlug').value = line.slug || '';
+                document.getElementById('lineImage').value = line.image_url || '';
+                document.getElementById('lineDesc').value = line.description || '';
+                document.getElementById('lineSort').value = line.sort_order || 0;
+                document.getElementById('lineActive').checked = line.is_active;
+            } else {
+                document.getElementById('lineForm').reset();
+                document.getElementById('lineId').value = '';
+                document.getElementById('lineActive').checked = true;
+            }
+            document.getElementById('lineModal').classList.add('active');
+        }
+
+        function closeLineModal() {
+            document.getElementById('lineModal').classList.remove('active');
+        }
+
+        async function saveLine() {
+            const id = document.getElementById('lineId').value;
+            const data = {
+                name: document.getElementById('lineName').value,
+                slug: document.getElementById('lineSlug').value,
+                image_url: document.getElementById('lineImage').value,
+                description: document.getElementById('lineDesc').value,
+                sort_order: parseInt(document.getElementById('lineSort').value) || 0,
+                is_active: document.getElementById('lineActive').checked
+            };
+
+            if (!data.name || !data.slug) {
+                showToast('Nome e Slug são obrigatórios', 'warning');
+                return;
+            }
+
+            let error;
+            if (id) {
+                const res = await supabase.from('product_lines').update(data).eq('id', id);
+                error = res.error;
+            } else {
+                const res = await supabase.from('product_lines').insert([data]);
+                error = res.error;
+            }
+
+            if (error) {
+                showToast('Erro: ' + error.message, 'error');
+            } else {
+                showToast('Linha salva com sucesso!');
+                closeLineModal();
+                loadLines();
+            }
+        }
+
+        async function deleteLine(id) {
+            if (confirm('Atenção: Excluir uma linha pode afetar os cortes vinculados. Continuar?')) {
+                const { error } = await supabase.from('product_lines').delete().eq('id', id);
+                if (error) showToast('Erro: ' + error.message, 'error');
+                else { showToast('Linha excluída!'); loadLines(); }
+            }
+        }
+
+        // --- CUTS CRUD ---
+        function updateLineDropdown() {
+            const select = document.getElementById('cutLineId');
+            select.innerHTML = linesData.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+        }
+
+        async function loadCuts() {
+            const tbody = document.getElementById('cutsTableBody');
+            const { data, error } = await supabase
+                .from('cuts')
+                .select('*, product_lines(name)')
+                .order('sort_order', { ascending: true });
+
+            if (error) {
+                tbody.innerHTML = '<tr><td colspan="7">Erro ao carregar cortes.</td></tr>';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Nenhum corte cadastrado.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(cut => `
+                <tr>
+                    <td>
+                        <div class="flex" style="align-items: center; gap: 1rem;">
+                            <img src="${cut.image_url || '/public/placeholder.jpg'}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
+                            <strong>${cut.name}</strong>
+                        </div>
+                    </td>
+                    <td>${cut.product_lines ? cut.product_lines.name : 'N/A'}</td>
+                    <td>${cut.price_range || '-'}</td>
+                    <td>${cut.weight || '-'}</td>
+                    <td>${cut.is_featured ? '<i class="fas fa-star text-accent"></i>' : '-'}</td>
+                    <td><span class="badge ${cut.is_active ? 'success' : 'danger'}">${cut.is_active ? 'Ativo' : 'Inativo'}</span></td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn-icon" onclick='openCutModal(${JSON.stringify(cut).replace(/'/g, "&#39;")})'><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon text-danger" onclick="deleteCut('${cut.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openCutModal(cut = null) {
+            if (linesData.length === 0) {
+                showToast('Crie pelo menos uma linha de produto primeiro.', 'warning');
+                return;
+            }
+            
+            document.getElementById('cutModalTitle').innerText = cut ? 'Editar Corte' : 'Novo Corte';
+            if (cut) {
+                document.getElementById('cutId').value = cut.id;
+                document.getElementById('cutName').value = cut.name || '';
+                document.getElementById('cutLineId').value = cut.line_id || '';
+                document.getElementById('cutImage').value = cut.image_url || '';
+                document.getElementById('cutDesc').value = cut.description || '';
+                document.getElementById('cutPrice').value = cut.price_range || '';
+                document.getElementById('cutWeight').value = cut.weight || '';
+                document.getElementById('cutSort').value = cut.sort_order || 0;
+                document.getElementById('cutFeatured').checked = cut.is_featured;
+                document.getElementById('cutActive').checked = cut.is_active;
+            } else {
+                document.getElementById('cutForm').reset();
+                document.getElementById('cutId').value = '';
+                document.getElementById('cutFeatured').checked = false;
+                document.getElementById('cutActive').checked = true;
+            }
+            document.getElementById('cutModal').classList.add('active');
+        }
+
+        function closeCutModal() {
+            document.getElementById('cutModal').classList.remove('active');
+        }
+
+        async function saveCut() {
+            const id = document.getElementById('cutId').value;
+            const data = {
+                name: document.getElementById('cutName').value,
+                line_id: document.getElementById('cutLineId').value,
+                image_url: document.getElementById('cutImage').value,
+                description: document.getElementById('cutDesc').value,
+                price_range: document.getElementById('cutPrice').value,
+                weight: document.getElementById('cutWeight').value,
+                sort_order: parseInt(document.getElementById('cutSort').value) || 0,
+                is_featured: document.getElementById('cutFeatured').checked,
+                is_active: document.getElementById('cutActive').checked
+            };
+
+            if (!data.name || !data.line_id) {
+                showToast('Nome e Linha são obrigatórios', 'warning');
+                return;
+            }
+
+            let error;
+            if (id) {
+                const res = await supabase.from('cuts').update(data).eq('id', id);
+                error = res.error;
+            } else {
+                const res = await supabase.from('cuts').insert([data]);
+                error = res.error;
+            }
+
+            if (error) {
+                showToast('Erro: ' + error.message, 'error');
+            } else {
+                showToast('Corte salvo com sucesso!');
+                closeCutModal();
+                loadCuts();
+            }
+        }
+
+        async function deleteCut(id) {
+            if (confirm('Excluir este corte?')) {
+                const { error } = await supabase.from('cuts').delete().eq('id', id);
+                if (error) showToast('Erro: ' + error.message, 'error');
+                else { showToast('Corte excluído!'); loadCuts(); }
+            }
+        }
+
+        // Init
+        checkAuth().then(() => {
+            loadLines().then(() => {
+                loadCuts();
+            });
+        });
+    </script>
+</body>
+</html>

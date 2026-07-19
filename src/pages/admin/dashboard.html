@@ -3,335 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bull Prime - Admin Dashboard</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../css/styles.css">
+    <title>Bull Prime Premium - Admin Dashboard</title>
     
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../css/admin.css">
+    
     <style>
-        :root {
-            --sidebar-width: 250px;
-            --gold: #c9a96e;
-            --dark-bg: #0a0a0a;
-            --panel-bg: #1a1a1a;
-            --text-light: #fff;
-            --text-muted: #888;
-        }
-
-        body.admin-dashboard {
-            margin: 0;
-            background-color: var(--dark-bg);
-            color: var(--text-light);
-            font-family: 'Lato', sans-serif;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: #111;
-            border-right: 1px solid rgba(201, 169, 110, 0.2);
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            padding: 2rem 1rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .sidebar-header h2 {
-            font-family: 'Restweek', 'Lato', sans-serif;
-            color: var(--gold);
-            margin: 0;
-            font-size: 1.8rem;
-            letter-spacing: 1px;
-        }
-
-        .sidebar-nav {
-            flex-grow: 1;
-            padding: 1rem 0;
-            overflow-y: auto;
-        }
-
-        .nav-item {
-            padding: 1rem 1.5rem;
-            display: block;
-            color: #ccc;
-            text-decoration: none;
-            transition: all 0.3s;
-            cursor: pointer;
-            border-left: 3px solid transparent;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background-color: rgba(201, 169, 110, 0.1);
-            color: var(--gold);
-            border-left-color: var(--gold);
-        }
-
-        /* Main Content */
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .topbar {
-            background-color: var(--panel-bg);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
         }
-
-        .user-email {
-            font-size: 0.9rem;
-            color: #ccc;
-        }
-
-        .btn-logout {
-            background: transparent;
-            border: 1px solid var(--gold);
-            color: var(--gold);
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Lato', sans-serif;
-        }
-
-        .btn-logout:hover {
-            background: var(--gold);
-            color: #000;
-        }
-
-        .content-area {
-            flex-grow: 1;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-
-        .section-pane, .admin-section {
-            display: none;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .section-pane.active, .admin-section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Common UI Elements */
-        h1 { margin-top: 0; color: var(--gold); }
-
-        .btn {
-            background-color: var(--gold);
-            color: #000;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Lato', sans-serif;
-            font-weight: 700;
-            transition: all 0.3s;
-        }
-        .btn:hover { background-color: #b5955a; }
-        .btn-danger { background-color: #ff4444; color: #fff; }
-        .btn-danger:hover { background-color: #cc0000; }
-        .btn-secondary { background-color: #444; color: #fff; }
-        .btn-secondary:hover { background-color: #333; }
         
-        .header-action {
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .quick-actions {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
-
-        /* Tables & Lists */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--panel-bg);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .data-table th, .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .data-table th { color: var(--gold); font-weight: 700; }
-        .data-table tr:hover td { background-color: rgba(255,255,255,0.02); }
-        .action-btns { display: flex; gap: 0.5rem; }
-
-        /* Forms */
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; color: #ccc; }
-        .form-control {
-            width: 100%; padding: 0.75rem;
-            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
-            color: #fff; border-radius: 4px; font-family: 'Lato', sans-serif;
-            box-sizing: border-box;
-        }
-        .form-control:focus { outline: none; border-color: var(--gold); }
-        textarea.form-control { resize: vertical; min-height: 100px; }
-
-        /* Modals */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            display: none; align-items: center; justify-content: center; z-index: 1000;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-content {
-            background: var(--panel-bg); border: 1px solid rgba(201,169,110,0.2);
-            padding: 2rem; border-radius: 8px; width: 100%; max-width: 600px;
-            max-height: 90vh; overflow-y: auto;
-        }
-        .modal-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
-        .modal-title { margin: 0; color: var(--gold); }
-        .close-modal { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
-
-        /* Toasts */
-        .toast-container {
-            position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px;
-        }
-        .toast {
-            background: #111; border-left: 4px solid var(--gold); color: #fff;
-            padding: 1rem; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            animation: slideIn 0.3s ease-out forwards;
-        }
-        .toast.error { border-left-color: #ff4444; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* Dashboard Stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card {
-            background: var(--panel-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(201,169,110,0.1);
-            text-align: center;
-        }
-        .stat-card h3 { margin: 0 0 0.5rem 0; color: #ccc; font-size: 1rem; font-weight: 400; }
-        .stat-card .value { font-size: 2rem; color: var(--gold); font-weight: 700; margin: 0; }
-
     </style>
 </head>
-<body class="admin-dashboard">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2>Bull Prime</h2>
-        </div>
-        <nav class="sidebar-nav" id="sidebarNav">
-            <a class="nav-item active" data-target="dashboard">Dashboard</a>
-            <a class="nav-item" data-target="site_content">Conteúdo do Site</a>
-            <a class="nav-item" data-target="hero_slides">Hero Banner</a>
-            <a class="nav-item" data-target="product_lines">Linhas de Produtos</a>
-            <a class="nav-item" data-target="cuts">Cortes</a>
-            <a class="nav-item" data-target="units">Unidades</a>
-            <a class="nav-item" data-target="events">Eventos</a>
-            <a class="nav-item" data-target="messages">Mensagens</a>
-            <a class="nav-item" data-target="settings">Configurações</a>
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <header class="topbar">
-            <div class="user-info">
-                <span class="user-email" id="userEmail">Carregando...</span>
-                <button class="btn-logout" id="btnLogout">Sair</button>
-            </div>
-        </header>
-
-        <div class="content-area">
-            
-            <!-- Dashboard Pane -->
-            <section class="section-pane admin-section active" id="pane-dashboard">
-                <h1>Visão Geral</h1>
-                <div class="stats-grid">
-                    <div class="stat-card"><h3>Total de Conteúdos</h3><p class="value" id="stat-contents">-</p></div>
-                    <div class="stat-card"><h3>Linhas Ativas</h3><p class="value" id="stat-lines">-</p></div>
-                    <div class="stat-card"><h3>Unidades</h3><p class="value" id="stat-units">-</p></div>
-                    <div class="stat-card"><h3>Mensagens Não Lidas</h3><p class="value" id="stat-messages">-</p></div>
-                </div>
-                <h2 style="margin-top: 2rem; color: var(--gold); font-size: 1.2rem;">Mensagens Recentes</h2>
-                <div id="recent-messages" style="background: var(--panel-bg); border-radius: 8px; border: 1px solid rgba(201,169,110,0.1); margin-top: 1rem;"></div>
-            </section>
-
-            <!-- Generic List Pane (will be populated dynamically) -->
-            <section class="section-pane admin-section" id="pane-generic">
-                <div class="header-action">
-                    <h1 id="generic-title">Título</h1>
-                    <button class="btn" id="btn-generic-add">Adicionar Novo</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="data-table" id="generic-table">
-                        <thead id="generic-thead"></thead>
-                        <tbody id="generic-tbody"></tbody>
-                    </table>
-                </div>
-            </section>
-
-        </div>
-    </main>
-
-    <!-- Generic Modal -->
-    <div class="modal-overlay" id="genericModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">Editar</h2>
-                <button class="close-modal" id="closeModal">&times;</button>
-            </div>
-            <form id="genericForm">
-                <div id="modalFormContent"></div>
-                <div style="margin-top: 1.5rem; text-align: right;">
-                    <button type="button" class="btn btn-secondary" id="cancelModal">Cancelar</button>
-                    <button type="submit" class="btn" id="saveModal">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Confirm Modal -->
-    <div class="modal-overlay" id="confirmModal">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <h2 class="modal-title" style="margin-bottom: 1rem;">Confirmar Exclusão</h2>
-            <p style="margin-bottom: 2rem;">Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.</p>
-            <div style="display: flex; justify-content: center; gap: 1rem;">
-                <button type="button" class="btn btn-secondary" id="cancelConfirm">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmActionBtn">Excluir</button>
-            </div>
-        </div>
-    </div>
+<body>
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <script src="../../js/admin.js"></script>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">Bull Prime</div>
+            
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Principal</div>
+                <a href="dashboard.html" class="sidebar-link active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    Dashboard
+                </a>
+                <a href="pages.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Páginas
+                </a>
+                <a href="media.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    Mídia
+                </a>
+
+                <div class="sidebar-section-label">Conteúdo</div>
+                <a href="blog.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    Blog
+                </a>
+                <a href="cuts.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    Catálogo
+                </a>
+
+                <div class="sidebar-section-label">Negócios</div>
+                <a href="units.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    Unidades
+                </a>
+                <a href="events.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    Eventos
+                </a>
+                <a href="contacts.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    Mensagens
+                </a>
+
+                <div class="sidebar-section-label">Sistema</div>
+                <a href="settings.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    Configurações
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Topbar -->
+            <header class="admin-topbar">
+                <h1 class="text-accent" style="font-family: 'Restweek', serif; font-size: 2rem;">Dashboard</h1>
+                <button id="logoutBtn" class="btn btn-secondary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Sair
+                </button>
+            </header>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="admin-card stat-card">
+                    <div class="icon-circle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="stat-pages">...</span>
+                        <span class="stat-label">Páginas</span>
+                    </div>
+                </div>
+                
+                <div class="admin-card stat-card">
+                    <div class="icon-circle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="stat-posts">...</span>
+                        <span class="stat-label">Posts</span>
+                    </div>
+                </div>
+                
+                <div class="admin-card stat-card">
+                    <div class="icon-circle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="stat-products">...</span>
+                        <span class="stat-label">Produtos</span>
+                    </div>
+                </div>
+                
+                <div class="admin-card stat-card">
+                    <div class="icon-circle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="stat-units">...</span>
+                        <span class="stat-label">Unidades</span>
+                    </div>
+                </div>
+                
+                <div class="admin-card stat-card">
+                    <div class="icon-circle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="stat-events">...</span>
+                        <span class="stat-label">Eventos</span>
+                    </div>
+                </div>
+                
+                <div class="admin-card stat-card">
+                    <div class="icon-circle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="stat-messages">...</span>
+                        <span class="stat-label">Mensagens (Não Lidas)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="admin-card mb-4">
+                <h3 class="mb-3">Ações Rápidas</h3>
+                <div class="quick-actions">
+                    <a href="pages.html" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Nova Página
+                    </a>
+                    <a href="blog.html" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Novo Post
+                    </a>
+                    <a href="media.html" class="btn btn-secondary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        Upload Mídia
+                    </a>
+                    <a href="../../index.html" target="_blank" class="btn btn-secondary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        Ver Site
+                    </a>
+                </div>
+            </div>
+
+            <!-- Last Messages -->
+            <div class="admin-card">
+                <h3 class="mb-3">Últimas Mensagens</h3>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Assunto</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messages-tbody">
+                            <tr>
+                                <td colspan="5" class="text-center" style="text-align: center; padding: 2rem;">Carregando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Check auth on load
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            } else {
+                fetchStats();
+                fetchMessages();
+            }
+        }
+        
+        checkAuth();
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function fetchStats() {
+            try {
+                // We mock the table names based on general naming conventions for such CMS
+                const tables = [
+                    { name: 'pages', id: 'stat-pages' },
+                    { name: 'blog_posts', id: 'stat-posts' },
+                    { name: 'cuts', id: 'stat-products' },
+                    { name: 'units', id: 'stat-units' },
+                    { name: 'events', id: 'stat-events' }
+                ];
+                
+                for (const table of tables) {
+                    const { count, error } = await supabase
+                        .from(table.name)
+                        .select('*', { count: 'exact', head: true });
+                        
+                    if (!error) {
+                        document.getElementById(table.id).textContent = count || '0';
+                    } else {
+                        document.getElementById(table.id).textContent = '0';
+                    }
+                }
+                
+                // Unread messages
+                const { count: msgCount, error: msgError } = await supabase
+                    .from('contact_submissions')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'unread');
+                    
+                if (!msgError) {
+                    document.getElementById('stat-messages').textContent = msgCount || '0';
+                } else {
+                    document.getElementById('stat-messages').textContent = '0';
+                }
+                
+            } catch (err) {
+                console.error('Error fetching stats:', err);
+            }
+        }
+        
+        async function fetchMessages() {
+            try {
+                const { data, error } = await supabase
+                    .from('contact_submissions')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                    
+                const tbody = document.getElementById('messages-tbody');
+                
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--admin-text-muted);">Erro ao carregar mensagens. Tabela pode não existir.</td></tr>`;
+                    return;
+                }
+                
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--admin-text-muted);">Nenhuma mensagem encontrada.</td></tr>`;
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+                data.forEach(msg => {
+                    const date = new Date(msg.created_at).toLocaleDateString('pt-BR');
+                    const badgeClass = msg.status === 'read' ? 'success' : 'warning';
+                    const badgeText = msg.status === 'read' ? 'Lida' : 'Não Lida';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${msg.name || '-'}</td>
+                        <td>${msg.email || '-'}</td>
+                        <td>${msg.subject || '-'}</td>
+                        <td>${date}</td>
+                        <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+            } catch (err) {
+                console.error('Error fetching messages:', err);
+            }
+        }
+    </script>
 </body>
 </html>

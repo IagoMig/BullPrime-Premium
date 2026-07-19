@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bull Prime Premium - Mensagens</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .filter-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--admin-border);
+            padding-bottom: 1rem;
+        }
+        .filter-tab {
+            background: transparent;
+            border: none;
+            color: var(--admin-text-muted);
+            font-size: 0.875rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s;
+        }
+        .filter-tab.active {
+            color: var(--admin-accent);
+            background: rgba(196, 139, 113, 0.1);
+        }
+        .message-row { cursor: pointer; }
+        .message-row.unread { background: rgba(255,255,255,0.03); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="/public/logo.png" style="height:40px;" alt="Bull Prime">
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">PRINCIPAL</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="pages.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Páginas</a>
+                <a href="media.html" class="sidebar-link"><i class="fas fa-image"></i> Mídia</a>
+                
+                <div class="sidebar-section-label">CONTEÚDO</div>
+                <a href="blog.html" class="sidebar-link"><i class="fas fa-newspaper"></i> Blog</a>
+                <a href="cuts.html" class="sidebar-link"><i class="fas fa-cut"></i> Catálogo</a>
+                
+                <div class="sidebar-section-label">NEGÓCIOS</div>
+                <a href="units.html" class="sidebar-link"><i class="fas fa-store"></i> Unidades</a>
+                <a href="events.html" class="sidebar-link"><i class="fas fa-calendar-alt"></i> Eventos</a>
+                <a href="contacts.html" class="sidebar-link active"><i class="fas fa-envelope"></i> Mensagens <span class="badge warning" id="unreadBadge" style="margin-left:auto;display:none;">0</span></a>
+                
+                <div class="sidebar-section-label">SISTEMA</div>
+                <a href="settings.html" class="sidebar-link"><i class="fas fa-cog"></i> Configurações</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h2>Mensagens</h2>
+            </header>
+
+            <div class="admin-card">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="setFilter('all')">Todas</button>
+                    <button class="filter-tab" onclick="setFilter('unread')">Não Lidas</button>
+                    <button class="filter-tab" onclick="setFilter('read')">Lidas</button>
+                </div>
+                
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>E-mail</th>
+                            <th>Assunto</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messagesTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal-overlay" id="messageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes da Mensagem</h3>
+                <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="font-weight: 300;">
+                <p><strong>De:</strong> <span id="msgName"></span> &lt;<span id="msgEmail"></span>&gt;</p>
+                <p><strong>Data:</strong> <span id="msgDate"></span></p>
+                <p><strong>Assunto:</strong> <span id="msgSubject"></span></p>
+                <hr style="border: 0; border-top: 1px solid var(--admin-border); margin: 1.5rem 0;">
+                <div id="msgContent" style="white-space: pre-wrap; color: var(--admin-text-muted);"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+                <button class="btn btn-primary" id="btnMarkRead" onclick="markAsRead()">Marcar como Lido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+                <button class="btn-icon" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta mensagem?</p>
+                <input type="hidden" id="deleteMsgId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let messages = [];
+        let currentFilter = 'all';
+        let viewingMessageId = null;
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'info-circle')}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function checkAuth() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            } else {
+                loadMessages();
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTable();
+        }
+
+        async function loadMessages() {
+            try {
+                const { data, error } = await supabase.from('contact_submissions').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                messages = data;
+                updateBadge();
+                renderTable();
+            } catch (error) {
+                showToast('Erro ao carregar mensagens', 'error');
+            }
+        }
+
+        function updateBadge() {
+            const unreadCount = messages.filter(m => !m.is_read).length;
+            const badge = document.getElementById('unreadBadge');
+            if (unreadCount > 0) {
+                badge.innerText = unreadCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('messagesTableBody');
+            
+            let filtered = messages;
+            if (currentFilter === 'unread') filtered = messages.filter(m => !m.is_read);
+            if (currentFilter === 'read') filtered = messages.filter(m => m.is_read);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;" class="text-muted">Nenhuma mensagem encontrada</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(msg => {
+                const dateObj = new Date(msg.created_at);
+                const dateStr = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                return `
+                <tr class="message-row ${!msg.is_read ? 'unread' : ''}">
+                    <td onclick="viewMessage('${msg.id}')">${msg.name}</td>
+                    <td onclick="viewMessage('${msg.id}')">${msg.email}</td>
+                    <td onclick="viewMessage('${msg.id}')">${msg.subject || '-'}</td>
+                    <td onclick="viewMessage('${msg.id}')">${dateStr}</td>
+                    <td onclick="viewMessage('${msg.id}')">
+                        <span class="badge ${msg.is_read ? 'success' : 'warning'}">
+                            ${msg.is_read ? 'Lido' : 'Não Lido'}
+                        </span>
+                    </td>
+                    <td class="table-actions">
+                        <button class="btn-icon" onclick="viewMessage('${msg.id}')"><i class="fas fa-eye"></i></button>
+                        <button class="btn-icon text-danger" onclick="promptDelete('${msg.id}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function viewMessage(id) {
+            const msg = messages.find(m => m.id === id);
+            if (!msg) return;
+            
+            viewingMessageId = msg.id;
+            document.getElementById('msgName').innerText = msg.name;
+            document.getElementById('msgEmail').innerText = msg.email;
+            document.getElementById('msgSubject').innerText = msg.subject || 'Sem Assunto';
+            document.getElementById('msgContent').innerText = msg.message;
+            
+            const dateObj = new Date(msg.created_at);
+            document.getElementById('msgDate').innerText = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR');
+
+            const btn = document.getElementById('btnMarkRead');
+            if (msg.is_read) {
+                btn.style.display = 'none';
+            } else {
+                btn.style.display = 'inline-flex';
+            }
+
+            document.getElementById('messageModal').classList.add('active');
+            
+            // Auto mark as read if not read
+            if (!msg.is_read) {
+                markAsRead(id);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('messageModal').classList.remove('active');
+            viewingMessageId = null;
+        }
+
+        async function markAsRead(overrideId = null) {
+            const id = overrideId || viewingMessageId;
+            if (!id) return;
+            
+            try {
+                const { error } = await supabase.from('contact_submissions').update({ is_read: true }).eq('id', id);
+                if (error) throw error;
+                
+                const msg = messages.find(m => m.id === id);
+                if (msg) msg.is_read = true;
+                
+                if (!overrideId) {
+                    showToast('Marcada como lida');
+                    document.getElementById('btnMarkRead').style.display = 'none';
+                }
+                
+                updateBadge();
+                renderTable();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function promptDelete(id) {
+            // prevent row click event
+            if(event) event.stopPropagation();
+            document.getElementById('deleteMsgId').value = id;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+
+        async function confirmDelete() {
+            const id = document.getElementById('deleteMsgId').value;
+            try {
+                const { error } = await supabase.from('contact_submissions').delete().eq('id', id);
+                if (error) throw error;
+                showToast('Mensagem excluída com sucesso');
+                closeDeleteModal();
+                loadMessages();
+            } catch (error) {
+                showToast('Erro ao excluir', 'error');
+            }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

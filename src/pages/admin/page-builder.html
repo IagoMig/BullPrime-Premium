@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Builder | Bull Prime Premium</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        .builder-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 1.5rem;
+            height: calc(100vh - 120px);
+            align-items: stretch;
+        }
+        .builder-sidebar {
+            background: var(--admin-card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--admin-border);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .builder-canvas {
+            background: var(--admin-bg);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--admin-border);
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+        }
+        .builder-config {
+            background: var(--admin-card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--admin-border);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .section-type-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--admin-border);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .section-type-card:hover {
+            border-color: var(--admin-accent);
+            background: rgba(196, 139, 113, 0.05);
+        }
+        .canvas-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--admin-border);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .canvas-section:hover, .canvas-section.active {
+            border-color: var(--admin-accent);
+        }
+        .canvas-section.active {
+            background: rgba(196, 139, 113, 0.1);
+        }
+        .canvas-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .config-group {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--admin-border);
+        }
+        .item-list-row {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        .remove-item-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            color: var(--admin-danger);
+        }
+        .handle {
+            cursor: grab;
+            color: var(--admin-text-muted);
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout" style="grid-template-columns: 1fr; padding: 1rem;">
+        
+        <header class="admin-topbar mb-3">
+            <div>
+                <a href="pages.html" class="btn btn-secondary btn-sm mb-1"><i class="fas fa-arrow-left"></i> Voltar</a>
+                <h2 id="page-title-display">Carregando...</h2>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="savePageConfig()">
+                    <i class="fas fa-save"></i> Salvar Tudo
+                </button>
+            </div>
+        </header>
+
+        <div class="builder-layout">
+            <!-- Left Sidebar -->
+            <div class="builder-sidebar">
+                <h3 class="mb-3 text-sm text-muted">SEÇÕES DISPONÍVEIS</h3>
+                <div id="available-sections">
+                    <!-- Loaded via JS -->
+                </div>
+            </div>
+
+            <!-- Center Canvas -->
+            <div class="builder-canvas" id="canvas-area">
+                <!-- Loaded via JS -->
+                <div id="empty-canvas" class="empty-state" style="display:none;">
+                    <i class="fas fa-layer-group"></i>
+                    <h3>Nenhuma seção adicionada</h3>
+                    <p>Clique em uma seção à esquerda para adicionar.</p>
+                </div>
+            </div>
+
+            <!-- Right Sidebar Config -->
+            <div class="builder-config">
+                <h3 class="mb-3 text-sm text-muted">CONFIGURAÇÃO</h3>
+                <div id="config-panel">
+                    <p class="text-muted text-sm text-center mt-4">Selecione uma seção no centro para configurá-la.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const pageId = urlParams.get('id');
+
+        let sections = [];
+        let activeSectionId = null;
+
+        const SECTION_TYPES = {
+            'hero': { name: 'Hero Banner', icon: 'fa-image', hasItems: false },
+            'masonry': { name: 'Grid Masonry', icon: 'fa-th-large', hasItems: true },
+            'text_image': { name: 'Texto + Imagem', icon: 'fa-columns', hasItems: false },
+            'gallery': { name: 'Galeria', icon: 'fa-images', hasItems: true },
+            'cta': { name: 'Call to Action', icon: 'fa-bullhorn', hasItems: false },
+            'text_block': { name: 'Bloco de Texto', icon: 'fa-align-left', hasItems: false },
+            'features': { name: 'Diferenciais', icon: 'fa-star', hasItems: true },
+            'glass_card': { name: 'Card Glass', icon: 'fa-square', hasItems: false }
+        };
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function init() {
+            if (!pageId) {
+                alert('ID da página não fornecido');
+                window.location.href = 'pages.html';
+                return;
+            }
+
+            // Render available sections
+            const availableDiv = document.getElementById('available-sections');
+            Object.entries(SECTION_TYPES).forEach(([type, info]) => {
+                const el = document.createElement('div');
+                el.className = 'section-type-card';
+                el.innerHTML = `<i class="fas ${info.icon} text-accent w-6"></i> <span>${info.name}</span>`;
+                el.onclick = () => addSection(type);
+                availableDiv.appendChild(el);
+            });
+
+            // Make canvas sortable
+            new Sortable(document.getElementById('canvas-area'), {
+                handle: '.handle',
+                animation: 150,
+                onEnd: () => {
+                    // Update array order based on DOM
+                    const newOrderIds = Array.from(document.querySelectorAll('.canvas-section')).map(el => el.dataset.id);
+                    sections = newOrderIds.map(id => sections.find(s => s.id === id));
+                }
+            });
+
+            await loadPageData();
+        }
+
+        async function loadPageData() {
+            try {
+                // Load Page info
+                const { data: pageData, error: pageErr } = await supabase.from('pages').select('title').eq('id', pageId).single();
+                if (pageErr) throw pageErr;
+                document.getElementById('page-title-display').innerText = `Builder: ${pageData.title}`;
+
+                // Load Sections
+                const { data: sectionsData, error: secErr } = await supabase
+                    .from('page_sections')
+                    .select('*, section_items(*)')
+                    .eq('page_id', pageId)
+                    .order('sort_order', { ascending: true });
+                
+                if (secErr) throw secErr;
+
+                sections = (sectionsData || []).map(sec => {
+                    // Normalize items
+                    const items = sec.section_items ? sec.section_items.map(item => typeof item.content === 'string' ? JSON.parse(item.content) : item.content) : [];
+                    return {
+                        id: sec.id,
+                        type: sec.section_type,
+                        config: sec.config || {},
+                        items: items,
+                        isNew: false
+                    };
+                });
+
+                renderCanvas();
+            } catch (error) {
+                console.error(error);
+                showToast('Erro ao carregar dados. ' + error.message, 'error');
+            }
+        }
+
+        function generateTempId() {
+            return 'temp_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function addSection(type) {
+            const newSec = {
+                id: generateTempId(),
+                type: type,
+                config: {},
+                items: [],
+                isNew: true
+            };
+            sections.push(newSec);
+            renderCanvas();
+            selectSection(newSec.id);
+        }
+
+        function renderCanvas() {
+            const canvas = document.getElementById('canvas-area');
+            const empty = document.getElementById('empty-canvas');
+            
+            // Clear existing section DOMs
+            document.querySelectorAll('.canvas-section').forEach(e => e.remove());
+
+            if (sections.length === 0) {
+                empty.style.display = 'flex';
+                return;
+            }
+            empty.style.display = 'none';
+
+            sections.forEach((sec, idx) => {
+                const info = SECTION_TYPES[sec.type];
+                const el = document.createElement('div');
+                el.className = `canvas-section ${activeSectionId === sec.id ? 'active' : ''}`;
+                el.dataset.id = sec.id;
+                el.onclick = (e) => {
+                    if(!e.target.closest('button')) selectSection(sec.id);
+                };
+                
+                el.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-grip-vertical handle"></i>
+                        <i class="fas ${info.icon} text-accent"></i>
+                        <span>${info.name}</span>
+                    </div>
+                    <div class="canvas-actions">
+                        <button class="btn-icon text-danger" onclick="removeSection('${sec.id}')" title="Remover"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                canvas.appendChild(el);
+            });
+        }
+
+        function selectSection(id) {
+            activeSectionId = id;
+            renderCanvas(); // Update active class
+            renderConfigPanel();
+        }
+
+        function removeSection(id) {
+            if(!confirm('Remover esta seção?')) return;
+            sections = sections.filter(s => s.id !== id);
+            if(activeSectionId === id) activeSectionId = null;
+            renderCanvas();
+            renderConfigPanel();
+        }
+
+        function renderConfigPanel() {
+            const panel = document.getElementById('config-panel');
+            if (!activeSectionId) {
+                panel.innerHTML = '<p class="text-muted text-sm text-center mt-4">Selecione uma seção no centro para configurá-la.</p>';
+                return;
+            }
+
+            const sec = sections.find(s => s.id === activeSectionId);
+            const info = SECTION_TYPES[sec.type];
+            let html = `<h4 class="mb-3 text-accent">${info.name}</h4>`;
+            
+            // Base Form Config Fields based on Type
+            html += `<form id="section-config-form" oninput="updateSectionConfig()">`;
+            
+            const field = (name, label, type='text', placeholder='') => `
+                <div class="form-group">
+                    <label class="form-label">${label}</label>
+                    ${type === 'textarea' 
+                        ? `<textarea name="${name}" class="form-textarea" placeholder="${placeholder}">${sec.config[name] || ''}</textarea>`
+                        : type === 'select'
+                        ? `<select name="${name}" class="form-select">
+                            <option value="left" ${sec.config[name]==='left'?'selected':''}>Esquerda</option>
+                            <option value="right" ${sec.config[name]==='right'?'selected':''}>Direita</option>
+                           </select>`
+                        : `<input type="${type}" name="${name}" class="form-input" value="${sec.config[name] || ''}" placeholder="${placeholder}">`
+                    }
+                </div>
+            `;
+
+            if (sec.type === 'hero') {
+                html += field('title', 'Título');
+                html += field('subtitle', 'Subtítulo');
+                html += field('description', 'Descrição', 'textarea');
+                html += field('background_image', 'URL da Imagem de Fundo');
+                html += field('cta_text', 'Texto do Botão');
+                html += field('cta_link', 'Link do Botão');
+            } else if (sec.type === 'masonry') {
+                html += field('title', 'Título da Seção');
+            } else if (sec.type === 'text_image') {
+                html += field('title', 'Título');
+                html += field('text', 'Texto', 'textarea');
+                html += field('image_url', 'URL da Imagem');
+                html += field('image_position', 'Posição da Imagem', 'select');
+            } else if (sec.type === 'gallery') {
+                html += field('title', 'Título da Galeria');
+            } else if (sec.type === 'cta') {
+                html += field('title', 'Título');
+                html += field('description', 'Descrição', 'textarea');
+                html += field('button_text', 'Texto do Botão');
+                html += field('button_link', 'Link do Botão');
+                html += field('background_color', 'Cor de Fundo', 'color');
+            } else if (sec.type === 'text_block') {
+                html += field('title', 'Título');
+                html += field('content', 'Conteúdo', 'textarea');
+            } else if (sec.type === 'features') {
+                html += field('title', 'Título da Seção');
+            } else if (sec.type === 'glass_card') {
+                html += field('title', 'Título');
+                html += field('description', 'Descrição', 'textarea');
+                html += field('background_image', 'URL da Imagem de Fundo');
+            }
+
+            html += `</form>`;
+
+            // Items List (if applicable)
+            if (info.hasItems) {
+                html += `<div class="mt-4 border-t pt-3" style="border-top:1px solid var(--admin-border)">`;
+                html += `<div class="flex-between mb-3">
+                            <label class="form-label mb-0">Itens</label>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="addItem()"><i class="fas fa-plus"></i> Adicionar</button>
+                         </div>`;
+                html += `<div id="items-container">`;
+                
+                sec.items.forEach((item, index) => {
+                    html += `<div class="item-list-row" data-index="${index}">
+                                <button type="button" class="btn-icon remove-item-btn" onclick="removeItem(${index})"><i class="fas fa-times"></i></button>`;
+                    
+                    if (sec.type === 'masonry') {
+                        html += `<input type="text" class="form-input mb-1 item-input" data-key="title" placeholder="Título" value="${item.title || ''}" oninput="updateItem(${index})">`;
+                        html += `<input type="text" class="form-input mb-1 item-input" data-key="description" placeholder="Descrição" value="${item.description || ''}" oninput="updateItem(${index})">`;
+                        html += `<input type="text" class="form-input mb-1 item-input" data-key="image_url" placeholder="URL Imagem" value="${item.image_url || ''}" oninput="updateItem(${index})">`;
+                        html += `<input type="text" class="form-input item-input" data-key="link_url" placeholder="URL Link" value="${item.link_url || ''}" oninput="updateItem(${index})">`;
+                    } else if (sec.type === 'gallery') {
+                        html += `<input type="text" class="form-input mb-1 item-input" data-key="image_url" placeholder="URL Imagem" value="${item.image_url || ''}" oninput="updateItem(${index})">`;
+                        html += `<input type="text" class="form-input item-input" data-key="alt_text" placeholder="Texto Alt" value="${item.alt_text || ''}" oninput="updateItem(${index})">`;
+                    } else if (sec.type === 'features') {
+                        html += `<input type="text" class="form-input mb-1 item-input" data-key="icon" placeholder="Ícone (Emoji)" value="${item.icon || ''}" oninput="updateItem(${index})">`;
+                        html += `<input type="text" class="form-input mb-1 item-input" data-key="title" placeholder="Título" value="${item.title || ''}" oninput="updateItem(${index})">`;
+                        html += `<input type="text" class="form-input item-input" data-key="description" placeholder="Descrição" value="${item.description || ''}" oninput="updateItem(${index})">`;
+                    }
+                    html += `</div>`;
+                });
+                
+                html += `</div></div>`;
+            }
+
+            panel.innerHTML = html;
+        }
+
+        window.updateSectionConfig = function() {
+            if(!activeSectionId) return;
+            const sec = sections.find(s => s.id === activeSectionId);
+            const formData = new FormData(document.getElementById('section-config-form'));
+            sec.config = Object.fromEntries(formData.entries());
+        };
+
+        window.addItem = function() {
+            if(!activeSectionId) return;
+            const sec = sections.find(s => s.id === activeSectionId);
+            sec.items.push({});
+            renderConfigPanel();
+        };
+
+        window.removeItem = function(index) {
+            if(!activeSectionId) return;
+            const sec = sections.find(s => s.id === activeSectionId);
+            sec.items.splice(index, 1);
+            renderConfigPanel();
+        };
+
+        window.updateItem = function(index) {
+            if(!activeSectionId) return;
+            const sec = sections.find(s => s.id === activeSectionId);
+            const row = document.querySelector(`.item-list-row[data-index="${index}"]`);
+            const inputs = row.querySelectorAll('.item-input');
+            const itemData = {};
+            inputs.forEach(inp => {
+                itemData[inp.dataset.key] = inp.value;
+            });
+            sec.items[index] = itemData;
+        };
+
+        async function savePageConfig() {
+            showToast('Salvando...', 'warning');
+            try {
+                // Delete existing sections to fully replace them (simpler syncing)
+                // First, fetch current section IDs for this page to delete their items just in case CASCADE isn't on
+                const { data: oldSecs } = await supabase.from('page_sections').select('id').eq('page_id', pageId);
+                if (oldSecs && oldSecs.length > 0) {
+                    const ids = oldSecs.map(s => s.id);
+                    await supabase.from('section_items').delete().in('section_id', ids);
+                    await supabase.from('page_sections').delete().eq('page_id', pageId);
+                }
+
+                // Insert new sections
+                for (let i = 0; i < sections.length; i++) {
+                    const sec = sections[i];
+                    
+                    const { data: insertedSec, error: insErr } = await supabase.from('page_sections').insert([{
+                        page_id: pageId,
+                        section_type: sec.type,
+                        config: sec.config,
+                        sort_order: i
+                    }]).select().single();
+
+                    if (insErr) throw insErr;
+
+                    // Insert items if any
+                    if (sec.items && sec.items.length > 0) {
+                        const itemsToInsert = sec.items.map((item, itemIdx) => ({
+                            section_id: insertedSec.id,
+                            content: JSON.stringify(item),
+                            sort_order: itemIdx
+                        }));
+                        const { error: itemErr } = await supabase.from('section_items').insert(itemsToInsert);
+                        if (itemErr) throw itemErr;
+                    }
+                }
+
+                showToast('Página salva com sucesso!');
+                // Reload to sync new IDs
+                await loadPageData();
+            } catch (error) {
+                console.error(error);
+                showToast('Erro ao salvar: ' + error.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

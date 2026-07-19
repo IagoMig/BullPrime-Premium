@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bull Prime Premium - Configurações</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .settings-grid {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: 1fr;
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="/public/logo.png" style="height:40px;" alt="Bull Prime">
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">PRINCIPAL</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="pages.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Páginas</a>
+                <a href="media.html" class="sidebar-link"><i class="fas fa-image"></i> Mídia</a>
+                
+                <div class="sidebar-section-label">CONTEÚDO</div>
+                <a href="blog.html" class="sidebar-link"><i class="fas fa-newspaper"></i> Blog</a>
+                <a href="cuts.html" class="sidebar-link"><i class="fas fa-cut"></i> Catálogo</a>
+                
+                <div class="sidebar-section-label">NEGÓCIOS</div>
+                <a href="units.html" class="sidebar-link"><i class="fas fa-store"></i> Unidades</a>
+                <a href="events.html" class="sidebar-link"><i class="fas fa-calendar-alt"></i> Eventos</a>
+                <a href="contacts.html" class="sidebar-link"><i class="fas fa-envelope"></i> Mensagens</a>
+                
+                <div class="sidebar-section-label">SISTEMA</div>
+                <a href="settings.html" class="sidebar-link active"><i class="fas fa-cog"></i> Configurações</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h2>Configurações</h2>
+            </header>
+
+            <form id="settingsForm" onsubmit="saveSettings(event)">
+                <div class="settings-grid">
+                    
+                    <!-- General Settings -->
+                    <div class="admin-card">
+                        <h3 class="mb-3"><i class="fas fa-info-circle text-accent"></i> Informações Gerais</h3>
+                        <div class="form-group">
+                            <label class="form-label">Nome do Site</label>
+                            <input type="text" class="form-input" id="site_name" data-key="site_name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Descrição do Site</label>
+                            <textarea class="form-textarea" id="site_description" data-key="site_description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">E-mail de Contato Principal</label>
+                            <input type="email" class="form-input" id="contact_email" data-key="contact_email">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Telefone Principal (WhatsApp)</label>
+                            <input type="text" class="form-input" id="contact_phone" data-key="contact_phone">
+                        </div>
+                    </div>
+
+                    <!-- Social Media Settings -->
+                    <div class="admin-card">
+                        <h3 class="mb-3"><i class="fas fa-share-alt text-accent"></i> Redes Sociais</h3>
+                        <div class="form-group">
+                            <label class="form-label">URL do Instagram</label>
+                            <input type="url" class="form-input" id="instagram_url" data-key="instagram_url">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">URL do Facebook</label>
+                            <input type="url" class="form-input" id="facebook_url" data-key="facebook_url">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">URL do YouTube</label>
+                            <input type="url" class="form-input" id="youtube_url" data-key="youtube_url">
+                        </div>
+                    </div>
+
+                    <!-- SEO Settings -->
+                    <div class="admin-card">
+                        <h3 class="mb-3"><i class="fas fa-search text-accent"></i> SEO Padrão</h3>
+                        <div class="form-group">
+                            <label class="form-label">Meta Title Padrão</label>
+                            <input type="text" class="form-input" id="default_meta_title" data-key="default_meta_title">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Meta Description Padrão</label>
+                            <textarea class="form-textarea" id="default_meta_description" data-key="default_meta_description"></textarea>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="btn btn-primary btn-lg" id="btnSave"><i class="fas fa-save"></i> Salvar Alterações</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'info-circle')}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function checkAuth() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            } else {
+                loadSettings();
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const { data, error } = await supabase.from('site_settings').select('*');
+                if (error) throw error;
+                
+                if (data) {
+                    data.forEach(setting => {
+                        const input = document.getElementById(setting.setting_key);
+                        if (input) {
+                            input.value = setting.setting_value || '';
+                        }
+                    });
+                }
+            } catch (error) {
+                showToast('Erro ao carregar configurações', 'error');
+                console.error(error);
+            }
+        }
+
+        async function saveSettings(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSave');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            btn.disabled = true;
+
+            const inputs = document.querySelectorAll('[data-key]');
+            const updates = Array.from(inputs).map(input => ({
+                setting_key: input.getAttribute('data-key'),
+                setting_value: input.value
+            }));
+
+            try {
+                // Supabase upsert requires primary key or unique constraint
+                // Assuming setting_key is the primary key or unique
+                const { error } = await supabase.from('site_settings').upsert(updates, { onConflict: 'setting_key' });
+                if (error) throw error;
+                
+                showToast('Configurações salvas com sucesso');
+            } catch (error) {
+                showToast('Erro ao salvar configurações', 'error');
+                console.error(error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

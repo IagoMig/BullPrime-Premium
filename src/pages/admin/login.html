@@ -3,130 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bull Prime - Admin Login</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../css/styles.css">
+    <title>Bull Prime Premium - Admin Login</title>
     
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../css/admin.css">
+    
     <style>
-        body.admin-login {
-            background-color: #0a0a0a;
+        @font-face {
+            font-family: 'Restweek';
+            src: url('../../public/Restweek.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Lato';
+            src: url('../../public/Lato-Light.ttf') format('truetype');
+            font-weight: 300;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            background: #050403 radial-gradient(circle at center, rgba(196, 139, 113, 0.1) 0%, transparent 60%);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
             margin: 0;
-            font-family: 'Lato', sans-serif;
-            color: #fff;
+            padding: 20px;
         }
 
         .login-card {
-            background: rgba(26, 26, 26, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(201, 169, 110, 0.2);
-            padding: 3rem;
-            border-radius: 8px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 3rem 2rem;
             text-align: center;
         }
 
-        .login-title {
-            font-family: 'Restweek', 'Lato', sans-serif;
-            font-size: 2.5rem;
-            color: #c9a96e;
+        .login-logo {
+            font-family: 'Restweek', serif;
+            font-size: 3rem;
+            color: var(--admin-accent);
             margin-bottom: 2rem;
-            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(196, 139, 113, 0.3);
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .login-form {
             text-align: left;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-            color: #ccc;
-        }
-
-        .form-control {
+        .login-btn {
             width: 100%;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border-radius: 4px;
-            font-family: 'Lato', sans-serif;
-            transition: border-color 0.3s;
-            box-sizing: border-box;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #c9a96e;
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background-color: #c9a96e;
-            color: #000;
-            border: none;
-            border-radius: 4px;
-            font-weight: 700;
-            font-family: 'Lato', sans-serif;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
             margin-top: 1rem;
+            height: 50px;
         }
-
-        .btn-login:hover {
-            background-color: #b5955a;
-        }
-
-        .btn-login:disabled {
-            background-color: #555;
-            color: #888;
-            cursor: not-allowed;
-        }
-
-        .error-message {
-            color: #ff4444;
-            margin-top: 1rem;
-            font-size: 0.9rem;
+        
+        .loading-text {
             display: none;
+        }
+        
+        .is-loading .btn-text {
+            display: none;
+        }
+        
+        .is-loading .loading-text {
+            display: inline-block;
         }
     </style>
 </head>
-<body class="admin-login">
-    <div class="login-card">
-        <h1 class="login-title">Bull Prime</h1>
-        <form id="loginForm">
+<body>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="admin-card login-card">
+        <div class="login-logo">Bull Prime</div>
+        
+        <form id="loginForm" class="login-form">
             <div class="form-group">
-                <label for="email">E-mail</label>
-                <input type="email" id="email" class="form-control" required autocomplete="email">
+                <label class="form-label">Email</label>
+                <input type="email" id="email" class="form-input" required placeholder="admin@bullprime.com">
             </div>
-            <div class="form-group">
-                <label for="password">Senha</label>
-                <input type="password" id="password" class="form-control" required autocomplete="current-password">
+            
+            <div class="form-group mb-4">
+                <label class="form-label">Senha</label>
+                <input type="password" id="password" class="form-input" required placeholder="••••••••">
             </div>
-            <button type="submit" id="submitBtn" class="btn-login">Entrar</button>
-            <div id="errorMsg" class="error-message"></div>
+            
+            <button type="submit" id="loginBtn" class="btn btn-primary login-btn">
+                <span class="btn-text">ENTRAR</span>
+                <span class="loading-text">
+                    <div class="loading-spinner"></div>
+                </span>
+            </button>
         </form>
     </div>
 
-    <script src="../../js/admin.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Check auth on load
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                window.location.href = 'dashboard.html';
+            }
+        }
+        
+        checkAuth();
+
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            
+            btn.classList.add('is-loading');
+            btn.disabled = true;
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            btn.classList.remove('is-loading');
+            btn.disabled = false;
+
+            if (error) {
+                showToast('Credenciais inválidas. Tente novamente.');
+            } else {
+                showToast('Login bem-sucedido!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 500);
+            }
+        });
+    </script>
 </body>
 </html>

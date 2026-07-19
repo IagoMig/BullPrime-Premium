@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bull Prime Premium - Gerenciar Unidades</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="/public/logo.png" style="height:40px;" alt="Bull Prime">
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">PRINCIPAL</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="pages.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Páginas</a>
+                <a href="media.html" class="sidebar-link"><i class="fas fa-image"></i> Mídia</a>
+                
+                <div class="sidebar-section-label">CONTEÚDO</div>
+                <a href="blog.html" class="sidebar-link"><i class="fas fa-newspaper"></i> Blog</a>
+                <a href="cuts.html" class="sidebar-link"><i class="fas fa-cut"></i> Catálogo</a>
+                
+                <div class="sidebar-section-label">NEGÓCIOS</div>
+                <a href="units.html" class="sidebar-link active"><i class="fas fa-store"></i> Unidades</a>
+                <a href="events.html" class="sidebar-link"><i class="fas fa-calendar-alt"></i> Eventos</a>
+                <a href="contacts.html" class="sidebar-link"><i class="fas fa-envelope"></i> Mensagens</a>
+                
+                <div class="sidebar-section-label">SISTEMA</div>
+                <a href="settings.html" class="sidebar-link"><i class="fas fa-cog"></i> Configurações</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h2>Unidades</h2>
+                <button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Nova Unidade</button>
+            </header>
+
+            <div class="admin-card">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Endereço</th>
+                            <th>Telefone</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unitsTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal-overlay" id="unitModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nova Unidade</h3>
+                <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="unitForm">
+                    <input type="hidden" id="unitId">
+                    <div class="form-group">
+                        <label class="form-label">Nome da Unidade</label>
+                        <input type="text" class="form-input" id="unitName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Slug (URL)</label>
+                        <input type="text" class="form-input" id="unitSlug" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Endereço Completo</label>
+                        <input type="text" class="form-input" id="unitAddress" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Horário de Funcionamento</label>
+                        <input type="text" class="form-input" id="unitHours">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" class="form-input" id="unitPhone">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">WhatsApp</label>
+                        <input type="text" class="form-input" id="unitWhatsapp">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">E-mail</label>
+                        <input type="email" class="form-input" id="unitEmail">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL da Imagem</label>
+                        <input type="text" class="form-input" id="unitImage">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL Google Maps</label>
+                        <input type="text" class="form-input" id="unitMaps">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ordem de Exibição</label>
+                        <input type="number" class="form-input" id="unitOrder" value="0">
+                    </div>
+                    <div class="form-group flex-between">
+                        <label class="form-label">Ativo</label>
+                        <label class="form-switch">
+                            <input type="checkbox" id="unitActive" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveUnit()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+                <button class="btn-icon" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta unidade? Esta ação não pode ser desfeita.</p>
+                <input type="hidden" id="deleteUnitId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let units = [];
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'info-circle')}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function checkAuth() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            } else {
+                loadUnits();
+            }
+        }
+
+        document.getElementById('unitName').addEventListener('input', function(e) {
+            if (!document.getElementById('unitId').value) {
+                const slug = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                document.getElementById('unitSlug').value = slug;
+            }
+        });
+
+        async function loadUnits() {
+            try {
+                const { data, error } = await supabase.from('units').select('*').order('sort_order', { ascending: true });
+                if (error) throw error;
+                units = data;
+                renderTable();
+            } catch (error) {
+                showToast('Erro ao carregar unidades', 'error');
+                console.error(error);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('unitsTableBody');
+            if (units.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;" class="text-muted">Nenhuma unidade cadastrada</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = units.map(unit => `
+                <tr>
+                    <td>${unit.name || '-'}</td>
+                    <td>${unit.address || '-'}</td>
+                    <td>${unit.phone || '-'}</td>
+                    <td>
+                        <span class="badge ${unit.is_active ? 'success' : 'danger'}" style="cursor:pointer;" onclick="toggleStatus('${unit.id}', ${unit.is_active})">
+                            ${unit.is_active ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </td>
+                    <td class="table-actions">
+                        <button class="btn-icon" onclick="editUnit('${unit.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon text-danger" onclick="promptDelete('${unit.id}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openModal() {
+            document.getElementById('unitForm').reset();
+            document.getElementById('unitId').value = '';
+            document.getElementById('modalTitle').innerText = 'Nova Unidade';
+            document.getElementById('unitModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('unitModal').classList.remove('active');
+        }
+
+        function editUnit(id) {
+            const unit = units.find(u => u.id === id);
+            if (!unit) return;
+            
+            document.getElementById('unitId').value = unit.id;
+            document.getElementById('unitName').value = unit.name || '';
+            document.getElementById('unitSlug').value = unit.slug || '';
+            document.getElementById('unitAddress').value = unit.address || '';
+            document.getElementById('unitHours').value = unit.hours || '';
+            document.getElementById('unitPhone').value = unit.phone || '';
+            document.getElementById('unitWhatsapp').value = unit.whatsapp || '';
+            document.getElementById('unitEmail').value = unit.email || '';
+            document.getElementById('unitImage').value = unit.image_url || '';
+            document.getElementById('unitMaps').value = unit.maps_url || '';
+            document.getElementById('unitOrder').value = unit.sort_order || 0;
+            document.getElementById('unitActive').checked = unit.is_active;
+
+            document.getElementById('modalTitle').innerText = 'Editar Unidade';
+            document.getElementById('unitModal').classList.add('active');
+        }
+
+        async function saveUnit() {
+            const form = document.getElementById('unitForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const unitData = {
+                name: document.getElementById('unitName').value,
+                slug: document.getElementById('unitSlug').value,
+                address: document.getElementById('unitAddress').value,
+                hours: document.getElementById('unitHours').value,
+                phone: document.getElementById('unitPhone').value,
+                whatsapp: document.getElementById('unitWhatsapp').value,
+                email: document.getElementById('unitEmail').value,
+                image_url: document.getElementById('unitImage').value,
+                maps_url: document.getElementById('unitMaps').value,
+                sort_order: parseInt(document.getElementById('unitOrder').value) || 0,
+                is_active: document.getElementById('unitActive').checked
+            };
+
+            const id = document.getElementById('unitId').value;
+            
+            try {
+                if (id) {
+                    const { error } = await supabase.from('units').update(unitData).eq('id', id);
+                    if (error) throw error;
+                    showToast('Unidade atualizada com sucesso');
+                } else {
+                    const { error } = await supabase.from('units').insert([unitData]);
+                    if (error) throw error;
+                    showToast('Unidade criada com sucesso');
+                }
+                closeModal();
+                loadUnits();
+            } catch (error) {
+                showToast(error.message || 'Erro ao salvar unidade', 'error');
+            }
+        }
+
+        async function toggleStatus(id, currentStatus) {
+            try {
+                const { error } = await supabase.from('units').update({ is_active: !currentStatus }).eq('id', id);
+                if (error) throw error;
+                showToast('Status atualizado');
+                loadUnits();
+            } catch (error) {
+                showToast('Erro ao atualizar status', 'error');
+            }
+        }
+
+        function promptDelete(id) {
+            document.getElementById('deleteUnitId').value = id;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+
+        async function confirmDelete() {
+            const id = document.getElementById('deleteUnitId').value;
+            try {
+                const { error } = await supabase.from('units').delete().eq('id', id);
+                if (error) throw error;
+                showToast('Unidade excluída com sucesso');
+                closeDeleteModal();
+                loadUnits();
+            } catch (error) {
+                showToast('Erro ao excluir unidade', 'error');
+            }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

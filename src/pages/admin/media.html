@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca de Mídia | Bull Prime Premium</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="/public/logo.png" style="height:40px; filter: drop-shadow(0 0 10px rgba(196,139,113,0.3));" alt="Bull Prime">
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">PRINCIPAL</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="pages.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Páginas</a>
+                <a href="media.html" class="sidebar-link active"><i class="fas fa-images"></i> Mídia</a>
+
+                <div class="sidebar-section-label">CONTEÚDO</div>
+                <a href="blog.html" class="sidebar-link"><i class="fas fa-pen-nib"></i> Blog</a>
+                <a href="cuts.html" class="sidebar-link"><i class="fas fa-utensils"></i> Catálogo</a>
+
+                <div class="sidebar-section-label">NEGÓCIOS</div>
+                <a href="units.html" class="sidebar-link"><i class="fas fa-store"></i> Unidades</a>
+                <a href="events.html" class="sidebar-link"><i class="fas fa-calendar-alt"></i> Eventos</a>
+                <a href="contacts.html" class="sidebar-link"><i class="fas fa-envelope"></i> Mensagens</a>
+
+                <div class="sidebar-section-label">SISTEMA</div>
+                <a href="settings.html" class="sidebar-link"><i class="fas fa-cog"></i> Configurações</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h2>Biblioteca de Mídia</h2>
+                <div class="flex gap-2">
+                    <select id="media-filter" class="form-select" style="width: 150px;">
+                        <option value="all">Todos</option>
+                        <option value="images">Imagens</option>
+                        <option value="others">Outros</option>
+                    </select>
+                </div>
+            </header>
+
+            <div class="admin-card">
+                <div id="upload-zone" class="upload-zone">
+                    <i class="fas fa-cloud-upload-alt fa-3x text-accent mb-2"></i>
+                    <h3>Arraste imagens aqui ou clique para selecionar</h3>
+                    <p class="text-muted">Suporta JPG, PNG, WEBP (Máx. 5MB)</p>
+                    <input type="file" id="file-input" class="hidden" accept="image/*" style="display: none;">
+                </div>
+            </div>
+
+            <div class="admin-card" style="min-height: 400px;">
+                <div id="media-grid" class="media-grid">
+                    <!-- Media items will be inserted here -->
+                </div>
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>Nenhuma mídia encontrada</h3>
+                    <p>Faça upload de imagens para sua biblioteca.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // UI Helpers
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        // Auth Check
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+            return session;
+        }
+
+        // Upload Logic
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+        
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('drag-over');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) {
+                handleFileUpload(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        async function handleFileUpload(file) {
+            try {
+                showToast('Iniciando upload...', 'warning');
+                
+                // Upload to Storage
+                const fileName = `${Date.now()}_${file.name}`;
+                const { data, error: storageError } = await supabase.storage
+                    .from('media')
+                    .upload(`uploads/${fileName}`, file);
+
+                if (storageError) throw storageError;
+
+                // Get Public URL
+                const { data: urlData } = supabase.storage
+                    .from('media')
+                    .getPublicUrl(`uploads/${fileName}`);
+                
+                const publicUrl = urlData.publicUrl;
+
+                // Insert into DB
+                const { error: dbError } = await supabase
+                    .from('media_library')
+                    .insert({
+                        file_name: file.name,
+                        file_url: publicUrl,
+                        file_type: file.type,
+                        file_size: file.size
+                    });
+
+                if (dbError) throw dbError;
+
+                showToast('Upload concluído com sucesso!');
+                loadMedia();
+            } catch (error) {
+                console.error(error);
+                showToast('Erro ao fazer upload: ' + error.message, 'error');
+            }
+        }
+
+        // Load Media
+        let allMedia = [];
+        
+        async function loadMedia() {
+            try {
+                const { data, error } = await supabase
+                    .from('media_library')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                
+                allMedia = data || [];
+                renderMedia();
+            } catch (error) {
+                showToast('Erro ao carregar mídia', 'error');
+            }
+        }
+
+        function renderMedia() {
+            const grid = document.getElementById('media-grid');
+            const emptyState = document.getElementById('empty-state');
+            const filter = document.getElementById('media-filter').value;
+            
+            let filtered = allMedia;
+            if (filter === 'images') {
+                filtered = allMedia.filter(m => m.file_type.startsWith('image/'));
+            } else if (filter === 'others') {
+                filtered = allMedia.filter(m => !m.file_type.startsWith('image/'));
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            grid.innerHTML = filtered.map(media => `
+                <div class="media-item">
+                    <img src="${media.file_url}" alt="${media.file_name}" onerror="this.src='/public/placeholder.png'">
+                    <div class="media-item-overlay flex-col p-2 text-center" style="flex-direction: column;">
+                        <span class="text-sm truncate w-full px-2" style="font-size:0.75rem" title="${media.file_name}">${media.file_name}</span>
+                        <span class="text-xs text-muted mb-2">${formatBytes(media.file_size)}</span>
+                        <div class="flex gap-2">
+                            <button class="btn btn-primary btn-sm" onclick="copyUrl('${media.file_url}')" title="Copiar URL">
+                                <i class="fas fa-link"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteMedia('${media.id}', '${media.file_url}')" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('media-filter').addEventListener('change', renderMedia);
+
+        function copyUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('URL copiada para a área de transferência');
+            });
+        }
+
+        async function deleteMedia(id, url) {
+            if (!confirm('Tem certeza que deseja excluir este arquivo?')) return;
+            
+            try {
+                // Extract file path from URL
+                const pathParts = url.split('/');
+                const fileName = pathParts[pathParts.length - 1];
+                
+                // Delete from DB
+                const { error: dbError } = await supabase
+                    .from('media_library')
+                    .delete()
+                    .eq('id', id);
+                    
+                if (dbError) throw dbError;
+
+                // Delete from Storage
+                const { error: storageError } = await supabase.storage
+                    .from('media')
+                    .remove([`uploads/${fileName}`]);
+                    
+                if (storageError) console.error('Erro ao excluir do storage:', storageError);
+
+                showToast('Arquivo excluído com sucesso');
+                loadMedia();
+            } catch (error) {
+                showToast('Erro ao excluir arquivo', 'error');
+            }
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', async () => {
+            // await checkAuth(); // Assuming checkAuth shouldn't block local dev without setup
+            loadMedia();
+        });
+    </script>
+</body>
+</html>

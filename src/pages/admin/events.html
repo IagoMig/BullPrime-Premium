@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bull Prime Premium - Gerenciar Eventos</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .event-card {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .event-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--admin-border);
+            background: rgba(255,255,255,0.02);
+        }
+        .event-content {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+        .event-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            background: rgba(0,0,0,0.6);
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="/public/logo.png" style="height:40px;" alt="Bull Prime">
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">PRINCIPAL</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="pages.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Páginas</a>
+                <a href="media.html" class="sidebar-link"><i class="fas fa-image"></i> Mídia</a>
+                
+                <div class="sidebar-section-label">CONTEÚDO</div>
+                <a href="blog.html" class="sidebar-link"><i class="fas fa-newspaper"></i> Blog</a>
+                <a href="cuts.html" class="sidebar-link"><i class="fas fa-cut"></i> Catálogo</a>
+                
+                <div class="sidebar-section-label">NEGÓCIOS</div>
+                <a href="units.html" class="sidebar-link"><i class="fas fa-store"></i> Unidades</a>
+                <a href="events.html" class="sidebar-link active"><i class="fas fa-calendar-alt"></i> Eventos</a>
+                <a href="contacts.html" class="sidebar-link"><i class="fas fa-envelope"></i> Mensagens</a>
+                
+                <div class="sidebar-section-label">SISTEMA</div>
+                <a href="settings.html" class="sidebar-link"><i class="fas fa-cog"></i> Configurações</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h2>Eventos</h2>
+                <button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Novo Evento</button>
+            </header>
+
+            <div class="events-grid" id="eventsGrid">
+                <div class="empty-state text-muted" style="grid-column: 1 / -1;">Carregando eventos...</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal-overlay" id="eventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Novo Evento</h3>
+                <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <input type="hidden" id="eventId">
+                    <div class="form-group">
+                        <label class="form-label">Título do Evento</label>
+                        <input type="text" class="form-input" id="eventTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data</label>
+                        <input type="date" class="form-input" id="eventDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-textarea" id="eventDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL da Imagem</label>
+                        <input type="text" class="form-input" id="eventImage">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ordem de Exibição</label>
+                        <input type="number" class="form-input" id="eventOrder" value="0">
+                    </div>
+                    <div class="form-group flex-between">
+                        <label class="form-label">Ativo</label>
+                        <label class="form-switch">
+                            <input type="checkbox" id="eventActive" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveEvent()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+                <button class="btn-icon" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir este evento?</p>
+                <input type="hidden" id="deleteEventId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let events = [];
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'info-circle')}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function checkAuth() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            } else {
+                loadEvents();
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        async function loadEvents() {
+            try {
+                const { data, error } = await supabase.from('events').select('*').order('date', { ascending: false });
+                if (error) throw error;
+                events = data;
+                renderGrid();
+            } catch (error) {
+                showToast('Erro ao carregar eventos', 'error');
+                console.error(error);
+            }
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('eventsGrid');
+            if (events.length === 0) {
+                grid.innerHTML = '<div class="empty-state text-muted" style="grid-column: 1 / -1;"><i class="fas fa-calendar-times"></i><p>Nenhum evento cadastrado</p></div>';
+                return;
+            }
+
+            grid.innerHTML = events.map(event => `
+                <div class="admin-card event-card" style="padding:0;">
+                    ${event.image_url ? `<img src="${event.image_url}" class="event-img" alt="${event.title}">` : `<div class="event-img flex-center text-muted" style="display:flex;align-items:center;justify-content:center;"><i class="fas fa-image fa-3x"></i></div>`}
+                    <div class="event-actions">
+                        <button class="btn-icon" style="color:white;" onclick="editEvent('${event.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon text-danger" onclick="promptDelete('${event.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="event-content">
+                        <h4 style="margin:0;">${event.title || 'Sem Título'}</h4>
+                        <div class="text-muted" style="font-size:0.875rem;"><i class="far fa-calendar"></i> ${formatDate(event.date)}</div>
+                        <div style="margin-top:auto; padding-top:10px;">
+                            <span class="badge ${event.is_active ? 'success' : 'danger'}" style="cursor:pointer;" onclick="toggleStatus('${event.id}', ${event.is_active})">
+                                ${event.is_active ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openModal() {
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventId').value = '';
+            document.getElementById('modalTitle').innerText = 'Novo Evento';
+            document.getElementById('eventModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('eventModal').classList.remove('active');
+        }
+
+        function editEvent(id) {
+            const ev = events.find(e => e.id === id);
+            if (!ev) return;
+            
+            document.getElementById('eventId').value = ev.id;
+            document.getElementById('eventTitle').value = ev.title || '';
+            document.getElementById('eventDate').value = ev.date || '';
+            document.getElementById('eventDescription').value = ev.description || '';
+            document.getElementById('eventImage').value = ev.image_url || '';
+            document.getElementById('eventOrder').value = ev.sort_order || 0;
+            document.getElementById('eventActive').checked = ev.is_active;
+
+            document.getElementById('modalTitle').innerText = 'Editar Evento';
+            document.getElementById('eventModal').classList.add('active');
+        }
+
+        async function saveEvent() {
+            const form = document.getElementById('eventForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const eventData = {
+                title: document.getElementById('eventTitle').value,
+                date: document.getElementById('eventDate').value || null,
+                description: document.getElementById('eventDescription').value,
+                image_url: document.getElementById('eventImage').value,
+                sort_order: parseInt(document.getElementById('eventOrder').value) || 0,
+                is_active: document.getElementById('eventActive').checked
+            };
+
+            const id = document.getElementById('eventId').value;
+            
+            try {
+                if (id) {
+                    const { error } = await supabase.from('events').update(eventData).eq('id', id);
+                    if (error) throw error;
+                    showToast('Evento atualizado com sucesso');
+                } else {
+                    const { error } = await supabase.from('events').insert([eventData]);
+                    if (error) throw error;
+                    showToast('Evento criado com sucesso');
+                }
+                closeModal();
+                loadEvents();
+            } catch (error) {
+                showToast(error.message || 'Erro ao salvar evento', 'error');
+            }
+        }
+
+        async function toggleStatus(id, currentStatus) {
+            try {
+                const { error } = await supabase.from('events').update({ is_active: !currentStatus }).eq('id', id);
+                if (error) throw error;
+                showToast('Status atualizado');
+                loadEvents();
+            } catch (error) {
+                showToast('Erro ao atualizar status', 'error');
+            }
+        }
+
+        function promptDelete(id) {
+            document.getElementById('deleteEventId').value = id;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+
+        async function confirmDelete() {
+            const id = document.getElementById('deleteEventId').value;
+            try {
+                const { error } = await supabase.from('events').delete().eq('id', id);
+                if (error) throw error;
+                showToast('Evento excluído com sucesso');
+                closeDeleteModal();
+                loadEvents();
+            } catch (error) {
+                showToast('Erro ao excluir evento', 'error');
+            }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

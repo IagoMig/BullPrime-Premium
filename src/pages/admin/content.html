@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conteúdo - Bull Prime Premium Admin</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background: var(--admin-card-bg);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--admin-border);
+            align-items: flex-end;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+        .content-cell {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: background 0.2s;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        .content-cell:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .content-edit-input {
+            width: 100%;
+            background: var(--admin-bg);
+            color: var(--admin-text);
+            border: 1px solid var(--admin-accent);
+            padding: 0.5rem;
+            font-family: inherit;
+            border-radius: 4px;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="/public/logo.png" style="height:40px; filter: drop-shadow(0 0 10px rgba(196,139,113,0.5));" alt="Bull Prime">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">PRINCIPAL</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="pages.html" class="sidebar-link"><i class="fas fa-file-alt"></i> Páginas</a>
+                <a href="media.html" class="sidebar-link"><i class="fas fa-images"></i> Mídia</a>
+                
+                <div class="sidebar-section-label">CONTEÚDO</div>
+                <a href="blog.html" class="sidebar-link"><i class="fas fa-blog"></i> Blog</a>
+                <a href="cuts.html" class="sidebar-link"><i class="fas fa-drumstick-bite"></i> Catálogo</a>
+                <a href="content.html" class="sidebar-link active"><i class="fas fa-font"></i> Textos do Site</a>
+                
+                <div class="sidebar-section-label">NEGÓCIOS</div>
+                <a href="units.html" class="sidebar-link"><i class="fas fa-store"></i> Unidades</a>
+                <a href="events.html" class="sidebar-link"><i class="fas fa-calendar-alt"></i> Eventos</a>
+                <a href="contacts.html" class="sidebar-link"><i class="fas fa-envelope"></i> Mensagens</a>
+                
+                <div class="sidebar-section-label">SISTEMA</div>
+                <a href="settings.html" class="sidebar-link"><i class="fas fa-cog"></i> Configurações</a>
+                <a href="#" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <div class="admin-topbar">
+                <h2>Conteúdo do Site</h2>
+                <button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Novo Conteúdo</button>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="form-label">Página</label>
+                    <select id="filterPage" class="form-select" onchange="loadContent()">
+                        <option value="">Todas</option>
+                        <option value="home">Home</option>
+                        <option value="sobre">Sobre</option>
+                        <option value="cardapio">Cardápio</option>
+                        <option value="unidades">Unidades</option>
+                        <option value="eventos">Eventos</option>
+                        <option value="contato">Contato</option>
+                        <option value="blog">Blog</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="form-label">Seção</label>
+                    <select id="filterSection" class="form-select" onchange="loadContent()">
+                        <option value="">Todas</option>
+                        <option value="hero">Hero</option>
+                        <option value="about">About</option>
+                        <option value="footer">Footer</option>
+                        <option value="cta">CTA</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="document.getElementById('filterPage').value=''; document.getElementById('filterSection').value=''; loadContent();"><i class="fas fa-times"></i> Limpar</button>
+            </div>
+
+            <div class="admin-card" style="padding: 0; overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Chave (Key)</th>
+                            <th>Valor (Value) - Duplo clique p/ editar</th>
+                            <th>Tipo</th>
+                            <th>Página</th>
+                            <th>Seção</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contentTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center"><div class="loading-spinner" style="margin:auto;"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal-overlay" id="contentModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="modalTitle">Novo Conteúdo</h3>
+                <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="contentForm">
+                    <input type="hidden" id="contentId">
+                    <div class="flex gap-2">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Página</label>
+                            <select id="contentPage" class="form-select" required>
+                                <option value="home">Home</option>
+                                <option value="sobre">Sobre</option>
+                                <option value="cardapio">Cardápio</option>
+                                <option value="unidades">Unidades</option>
+                                <option value="eventos">Eventos</option>
+                                <option value="contato">Contato</option>
+                                <option value="blog">Blog</option>
+                                <option value="global">Global</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Seção</label>
+                            <input type="text" id="contentSection" class="form-input" required placeholder="ex: hero">
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="form-group" style="flex: 2;">
+                            <label class="form-label">Chave (Key)</label>
+                            <input type="text" id="contentKey" class="form-input" required placeholder="ex: hero_title">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Tipo</label>
+                            <select id="contentType" class="form-select" required onchange="toggleValueInput()">
+                                <option value="text">Texto</option>
+                                <option value="html">HTML</option>
+                                <option value="image">Imagem (URL)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="valueContainer">
+                        <label class="form-label">Valor</label>
+                        <textarea id="contentValueText" class="form-textarea"></textarea>
+                        <input type="text" id="contentValueInput" class="form-input" style="display: none;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ordem (Sort)</label>
+                        <input type="number" id="contentSort" class="form-input" value="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveContent()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag])
+            );
+        }
+
+        async function loadContent() {
+            const tbody = document.getElementById('contentTableBody');
+            const pageFilter = document.getElementById('filterPage').value;
+            const sectionFilter = document.getElementById('filterSection').value;
+
+            let query = supabase.from('site_content').select('*').order('page').order('section').order('sort_order');
+            
+            if (pageFilter) query = query.eq('page', pageFilter);
+            if (sectionFilter) query = query.eq('section', sectionFilter);
+
+            const { data, error } = await query;
+
+            if (error) {
+                tbody.innerHTML = '<tr><td colspan="6">Erro ao carregar dados.</td></tr>';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhum conteúdo encontrado.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td><strong>${item.content_key}</strong></td>
+                    <td>
+                        <div class="content-cell" ondblclick="enableInlineEdit(this, '${item.id}')" title="Duplo clique para editar">
+                            ${item.content_type === 'image' ? 
+                                `<a href="${item.content_value}" target="_blank" class="text-accent"><i class="fas fa-image"></i> Ver Imagem</a>` : 
+                                escapeHTML(item.content_value || '')
+                            }
+                        </div>
+                    </td>
+                    <td><span class="badge" style="background: rgba(255,255,255,0.1);">${item.content_type}</span></td>
+                    <td>${item.page}</td>
+                    <td>${item.section}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn-icon" onclick='openModal(${JSON.stringify(item).replace(/'/g, "&#39;")})'><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon text-danger" onclick="deleteContent('${item.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function enableInlineEdit(cell, id) {
+            if (cell.querySelector('input') || cell.querySelector('textarea')) return;
+            
+            const originalValue = cell.innerText === 'Ver Imagem' ? cell.querySelector('a').href : cell.innerText;
+            const input = document.createElement('textarea');
+            input.className = 'content-edit-input';
+            input.value = originalValue;
+            
+            cell.innerHTML = '';
+            cell.appendChild(input);
+            input.focus();
+
+            const saveOnBlur = async () => {
+                const newValue = input.value;
+                cell.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                const { error } = await supabase.from('site_content').update({ content_value: newValue }).eq('id', id);
+                if (error) {
+                    showToast('Erro ao salvar: ' + error.message, 'error');
+                } else {
+                    showToast('Salvo!');
+                }
+                loadContent();
+            };
+
+            input.addEventListener('blur', saveOnBlur);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    input.blur();
+                }
+            });
+        }
+
+        function toggleValueInput() {
+            const type = document.getElementById('contentType').value;
+            const text = document.getElementById('contentValueText');
+            const input = document.getElementById('contentValueInput');
+            
+            if (type === 'image') {
+                text.style.display = 'none';
+                input.style.display = 'block';
+                input.type = 'url';
+            } else {
+                text.style.display = 'block';
+                input.style.display = 'none';
+            }
+        }
+
+        function openModal(item = null) {
+            document.getElementById('modalTitle').innerText = item ? 'Editar Conteúdo' : 'Novo Conteúdo';
+            
+            if (item) {
+                document.getElementById('contentId').value = item.id;
+                document.getElementById('contentPage').value = item.page || 'home';
+                document.getElementById('contentSection').value = item.section || '';
+                document.getElementById('contentKey').value = item.content_key || '';
+                document.getElementById('contentType').value = item.content_type || 'text';
+                document.getElementById('contentSort').value = item.sort_order || 0;
+                
+                toggleValueInput();
+                if (item.content_type === 'image') {
+                    document.getElementById('contentValueInput').value = item.content_value || '';
+                } else {
+                    document.getElementById('contentValueText').value = item.content_value || '';
+                }
+            } else {
+                document.getElementById('contentForm').reset();
+                document.getElementById('contentId').value = '';
+                toggleValueInput();
+            }
+            
+            document.getElementById('contentModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('contentModal').classList.remove('active');
+        }
+
+        async function saveContent() {
+            const id = document.getElementById('contentId').value;
+            const type = document.getElementById('contentType').value;
+            const value = type === 'image' ? document.getElementById('contentValueInput').value : document.getElementById('contentValueText').value;
+            
+            const data = {
+                page: document.getElementById('contentPage').value,
+                section: document.getElementById('contentSection').value,
+                content_key: document.getElementById('contentKey').value,
+                content_type: type,
+                content_value: value,
+                sort_order: parseInt(document.getElementById('contentSort').value) || 0
+            };
+
+            if (!data.content_key || !data.section) {
+                showToast('Chave e Seção são obrigatórios', 'warning');
+                return;
+            }
+
+            let error;
+            if (id) {
+                const res = await supabase.from('site_content').update(data).eq('id', id);
+                error = res.error;
+            } else {
+                const res = await supabase.from('site_content').insert([data]);
+                error = res.error;
+            }
+
+            if (error) {
+                showToast('Erro: ' + error.message, 'error');
+            } else {
+                showToast('Conteúdo salvo com sucesso!');
+                closeModal();
+                loadContent();
+            }
+        }
+
+        async function deleteContent(id) {
+            if (confirm('Tem certeza que deseja excluir este conteúdo?')) {
+                const { error } = await supabase.from('site_content').delete().eq('id', id);
+                if (error) {
+                    showToast('Erro: ' + error.message, 'error');
+                } else {
+                    showToast('Conteúdo excluído!');
+                    loadContent();
+                }
+            }
+        }
+
+        // Init
+        checkAuth().then(loadContent);
+    </script>
+</body>
+</html>
