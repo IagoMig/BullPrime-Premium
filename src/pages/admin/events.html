@@ -92,7 +92,7 @@
                 <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <form id="eventForm">
+                <form id="eventForm" onsubmit="event.preventDefault();">
                     <input type="hidden" id="eventId">
                     <div class="form-group">
                         <label class="form-label">Título do Evento</label>

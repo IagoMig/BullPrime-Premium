@@ -154,6 +154,15 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
         let supabase; try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); else alert("Erro de conexão ao carregar o sistema."); } catch(e) { console.error(e); }
 
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+        checkAuth();
+        
+
         const urlParams = new URLSearchParams(window.location.search);
         const pageId = urlParams.get('id');
 
@@ -328,7 +337,7 @@
             let html = `<h4 class="mb-3 text-accent">${info.name}</h4>`;
             
             // Base Form Config Fields based on Type
-            html += `<form id="section-config-form" oninput="updateSectionConfig()">`;
+            html += `<form id="section-config-form" onsubmit="event.preventDefault()" oninput="updateSectionConfig()">`;
             
             const field = (name, label, type='text', placeholder='') => `
                 <div class="form-group">

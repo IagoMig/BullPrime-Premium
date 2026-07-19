@@ -44,6 +44,7 @@ const BullPrimeContent = {
 
         try {
             await BullPrimeContent.loadAllContent();
+            await BullPrimeContent.loadDynamicLists();
             console.log('BullPrimeContent: Carregamento concluído com sucesso.');
         } catch (err) {
             console.error('BullPrimeContent: Erro no carregamento. Conteúdo estático mantido.', err);
@@ -188,6 +189,85 @@ const BullPrimeContent = {
             }
         });
         await BullPrimeContent.loadAllContent();
+    },
+
+    loadDynamicLists: async () => {
+        const page = BullPrimeContent.detectPage();
+        
+        try {
+            if (page === 'blog') {
+                const { data } = await window.BullPrimeDB.supabase.from('blog_posts').select('*').eq('status', 'published').order('created_at', { ascending: false });
+                if (data && data.length > 0) {
+                    const grid = document.querySelector('.editorial-grid');
+                    if (grid) {
+                        grid.innerHTML = data.map((post, idx) => {
+                            const isMain = idx === 0;
+                            const link = \`blog-post.html?slug=\${post.slug}\`;
+                            return \`
+                            <div class="\${isMain ? 'ed-span-12' : 'ed-span-6'} masonry-card reveal-blur" style="min-height: \${isMain ? '550px' : '450px'}; box-shadow: 0 \${isMain ? '40px 80px' : '30px 60px'} rgba(0,0,0,\${isMain ? '0.8' : '0.6'}); border-radius: 12px; overflow: hidden; opacity: 1; transform: none;">
+                                <div class="masonry-bg" style="background-image: url('\${post.cover_image || '../../public/08.diadia.jpg'}'); \${isMain ? 'left: 0; top: 0; bottom: 0; right: 0; width: 65%; mask-image: linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);' : 'left: 0; top: 0; right: 0; width: 100%; height: 60%; mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);'}"></div>
+                                <div class="masonry-overlay" style="\${isMain ? 'background: linear-gradient(to right, rgba(5,4,3,1) 35%, transparent 100%);' : 'background: linear-gradient(to top, rgba(5,4,3,1) 45%, transparent 100%);'}"></div>
+                                
+                                <div class="masonry-content" style="position: absolute; \${isMain ? 'left: 0; top: 0; bottom: 0; max-width: 50%; padding: 4rem; display: flex; flex-direction: column; justify-content: center;' : 'bottom: 0; width: 100%; padding: 3rem; padding-top: 0; text-align: left;'}">
+                                    <span class="section-label" style="color: \${isMain ? 'rgba(255,255,255,0.3)' : 'var(--color-accent)'}; margin-bottom: 1rem;">\${post.tags && post.tags.length > 0 ? post.tags[0] : 'ARTIGO'}</span>
+                                    <h3 class="masonry-title" style="font-size: \${isMain ? '3rem' : '2rem'}; \${isMain ? 'color: #fff; margin-bottom: 1.5rem;' : ''}">\${post.title}</h3>
+                                    <p class="masonry-desc" style="margin-bottom: \${isMain ? '3rem' : '2rem'}; \${isMain ? 'font-size: 1.1rem; line-height: 1.8;' : ''}">\${post.excerpt || ''}</p>
+                                    \${isMain 
+                                        ? \`<div><a href="\${link}" class="btn-outline" style="border-color: var(--color-accent); color: var(--color-accent);">LER ARTIGO COMPLETO</a></div>\`
+                                        : \`<a href="\${link}" style="color: var(--color-accent); text-decoration: none; font-family: 'Lato'; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--color-accent); padding-bottom: 5px;">Ler Artigo &rarr;</a>\`
+                                    }
+                                </div>
+                            </div>
+                            \`;
+                        }).join('');
+                    }
+                }
+            } else if (page === 'unidades') {
+                const { data } = await window.BullPrimeDB.supabase.from('units').select('*').eq('is_active', true).order('sort_order', { ascending: true });
+                if (data && data.length > 0) {
+                    const grid = document.querySelector('.units-grid');
+                    if (grid) {
+                        grid.innerHTML = data.map(unit => \`
+                            <div class="unit-card reveal-blur" style="opacity:1; transform:none;">
+                                <div class="unit-image" style="background-image: url('\${unit.image_url || '../../public/background-02.jpg'}');"></div>
+                                <div class="unit-info">
+                                    <h3>\${unit.name}</h3>
+                                    <p class="unit-address">\${unit.address}</p>
+                                    <div class="unit-details">
+                                        <p><i class="fas fa-clock"></i> \${unit.hours}</p>
+                                        <p><i class="fas fa-phone"></i> \${unit.phone}</p>
+                                    </div>
+                                    <div class="unit-actions" style="display:flex; gap:1rem; margin-top:2rem;">
+                                        \${unit.maps_url ? \`<a href="\${unit.maps_url}" target="_blank" class="btn-outline" style="flex:1; text-align:center;">Ver no Mapa</a>\` : ''}
+                                        \${unit.whatsapp ? \`<a href="https://wa.me/\${unit.whatsapp.replace(/\\D/g,'')}" target="_blank" class="btn-primary" style="flex:1; text-align:center; padding: 0.8rem;">Reservar</a>\` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        \`).join('');
+                    }
+                }
+            } else if (page === 'eventos') {
+                const { data } = await window.BullPrimeDB.supabase.from('events').select('*').eq('is_active', true).order('date', { ascending: true });
+                if (data && data.length > 0) {
+                    const grid = document.querySelector('.events-grid') || document.querySelector('.editorial-grid'); // fallback to editorial grid
+                    if (grid) {
+                        grid.innerHTML = data.map(ev => \`
+                            <div class="ed-span-6 masonry-card reveal-blur" style="min-height: 400px; border-radius: 12px; overflow: hidden; opacity: 1; transform: none;">
+                                <div class="masonry-bg" style="background-image: url('\${ev.image_url || '../../public/background-03.jpg'}'); left: 0; top: 0; right: 0; width: 100%; height: 60%; mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);"></div>
+                                <div class="masonry-overlay" style="background: linear-gradient(to top, rgba(5,4,3,1) 45%, transparent 100%);"></div>
+                                <div class="masonry-content" style="position: absolute; bottom: 0; width: 100%; padding: 3rem; padding-top: 0; text-align: left;">
+                                    <span class="section-label" style="color: var(--color-accent); margin-bottom: 1rem;">\${new Date(ev.date).toLocaleDateString('pt-BR')}</span>
+                                    <h3 class="masonry-title" style="font-size: 2rem;">\${ev.title}</h3>
+                                    <p class="masonry-desc" style="margin-bottom: 2rem;">\${ev.description || ''}</p>
+                                </div>
+                            </div>
+                        \`).join('');
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Erro ao carregar listas dinâmicas:", e);
+        }
     }
 };
 

@@ -165,7 +165,7 @@
                 <button class="btn-icon" onclick="closeLineModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <form id="lineForm">
+                <form id="lineForm" onsubmit="event.preventDefault();">
                     <input type="hidden" id="lineId">
                     <div class="form-group">
                         <label class="form-label">Nome</label>
@@ -213,7 +213,7 @@
                 <button class="btn-icon" onclick="closeCutModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <form id="cutForm">
+                <form id="cutForm" onsubmit="event.preventDefault();">
                     <input type="hidden" id="cutId">
                     <div class="flex gap-2">
                         <div class="form-group" style="flex: 2;">
@@ -339,7 +339,7 @@
                     <div class="line-card-bg" style="background-image: url('${line.image_url || '/public/placeholder.jpg'}')"></div>
                     <div class="line-card-overlay"></div>
                     <div class="line-actions">
-                        <button class="btn-icon" style="background: rgba(0,0,0,0.5);" onclick='openLineModal(${JSON.stringify(line).replace(/'/g, "&#39;")})'><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon" style="background: rgba(0,0,0,0.5);" onclick='openLineModal(${JSON.stringify(line).replace(/'/g, "&#39;").replace(/"/g, "&quot;")})'><i class="fas fa-edit"></i></button>
                         <button class="btn-icon" style="background: rgba(248,113,113,0.5); color: #f87171;" onclick="deleteLine('${line.id}')"><i class="fas fa-trash"></i></button>
                     </div>
                     <div class="line-card-content">
@@ -454,7 +454,7 @@
                     <td><span class="badge ${cut.is_active ? 'success' : 'danger'}">${cut.is_active ? 'Ativo' : 'Inativo'}</span></td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn-icon" onclick='openCutModal(${JSON.stringify(cut).replace(/'/g, "&#39;")})'><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon" onclick='openCutModal(${JSON.stringify(cut).replace(/'/g, "&#39;").replace(/"/g, "&quot;")})'><i class="fas fa-edit"></i></button>
                             <button class="btn-icon text-danger" onclick="deleteCut('${cut.id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>

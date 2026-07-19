@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carregando Post... | Bull Prime Journal</title>
+    <link rel="icon" type="image/png" href="../../public/logo.png">
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dark-theme">
+    <div id="header"></div>
+    
+    <div id="dynamic-content">
+        <div class="container section-spacious text-center" style="padding-top: 15rem; min-height: 70vh;">
+            <div class="spinner" style="margin: 0 auto 2rem; width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--color-accent); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+            <p>Carregando artigo...</p>
+        </div>
+    </div>
+    
+    <div id="footer"></div>
+
+    <script src="../components/header.js"></script>
+    <script src="../components/footer.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+        let supabase; try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); else alert("Erro de conexão"); } catch(e) {}
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('slug');
+
+        async function init() {
+            if (!slug) {
+                document.getElementById('dynamic-content').innerHTML = `
+                    <div class="container section-spacious text-center" style="padding-top: 15rem;">
+                        <h2>Post não encontrado</h2>
+                        <a href="blog.html" class="btn-primary mt-4" style="display:inline-block;">Voltar ao Blog</a>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                // Load Blog Post
+                const { data: post, error } = await supabase
+                    .from('blog_posts')
+                    .select('*')
+                    .eq('slug', slug)
+                    .single();
+
+                if (error || !post) throw error || new Error("Post não encontrado");
+
+                // Update meta
+                document.title = `${post.title} | Bull Prime Journal`;
+                if(post.excerpt) {
+                    const metaDesc = document.createElement('meta');
+                    metaDesc.name = "description";
+                    metaDesc.content = post.excerpt;
+                    document.head.appendChild(metaDesc);
+                }
+
+                renderPost(post);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('dynamic-content').innerHTML = `
+                    <div class="container section-spacious text-center" style="padding-top: 15rem;">
+                        <h2>Erro ao carregar o post</h2>
+                        <p class="text-muted mt-2">${error.message}</p>
+                        <a href="blog.html" class="btn-primary mt-4" style="display:inline-block;">Voltar ao Blog</a>
+                    </div>
+                `;
+            }
+        }
+
+        function renderPost(post) {
+            const container = document.getElementById('dynamic-content');
+            
+            const dateStr = new Date(post.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+            const coverImage = post.cover_image || '../../public/08.diadia.jpg';
+
+            let html = `
+                <div class="hero-wrapper">
+                    <section class="hero" style="min-height: 60vh;">
+                        <div class="hero-bg" style="background-image: url('${coverImage}');"></div>
+                        <div class="hero-overlay-deep"></div>
+                        <div class="container hero-content text-center" style="padding-top: 10rem;">
+                            <span class="hero-eyebrow" style="color: var(--color-accent);">${dateStr} &bull; Por ${post.author || 'Bull Prime'}</span>
+                            <h1 class="hero-title-sans" style="font-size: 3.5rem; margin-top: 1rem;">${post.title}</h1>
+                        </div>
+                    </section>
+                </div>
+                
+                <main class="main-content" style="background: var(--color-void);">
+                    <section class="section-with-bg" style="padding: 4rem 0;">
+                        <div class="container" style="max-width: 800px; margin: 0 auto; color: rgba(255,255,255,0.85); font-size: 1.15rem; line-height: 1.8;">
+                            ${post.content || ''}
+                        </div>
+                    </section>
+                </main>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

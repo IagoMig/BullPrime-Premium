@@ -69,7 +69,7 @@
                 <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <form id="unitForm">
+                <form id="unitForm" onsubmit="event.preventDefault();">
                     <input type="hidden" id="unitId">
                     <div class="form-group">
                         <label class="form-label">Nome da Unidade</label>

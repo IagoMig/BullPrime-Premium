@@ -140,7 +140,7 @@
                 <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <form id="postForm">
+                <form id="postForm" onsubmit="event.preventDefault();">
                     <input type="hidden" id="postId">
                     <div class="form-group">
                         <label class="form-label">Título</label>
@@ -305,8 +305,8 @@
                     <div class="blog-card-bg" style="background-image: url('${post.cover_image || '/public/placeholder.jpg'}')"></div>
                     <div class="blog-card-overlay"></div>
                     <div class="blog-actions">
-                        <button class="btn-icon" style="background: rgba(0,0,0,0.5);" onclick='previewPost(${JSON.stringify(post).replace(/'/g, "&#39;")})'><i class="fas fa-eye"></i></button>
-                        <button class="btn-icon" style="background: rgba(0,0,0,0.5);" onclick='openModal(${JSON.stringify(post).replace(/'/g, "&#39;")})'><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon" style="background: rgba(0,0,0,0.5);" onclick='previewPost(${JSON.stringify(post).replace(/'/g, "&#39;").replace(/"/g, "&quot;")})'><i class="fas fa-eye"></i></button>
+                        <button class="btn-icon" style="background: rgba(0,0,0,0.5);" onclick='openModal(${JSON.stringify(post).replace(/'/g, "&#39;").replace(/"/g, "&quot;")})'><i class="fas fa-edit"></i></button>
                         <button class="btn-icon" style="background: rgba(248,113,113,0.5); color: #f87171;" onclick="deletePost('${post.id}')"><i class="fas fa-trash"></i></button>
                     </div>
                     <div class="blog-card-content" style="padding: 1.5rem;">

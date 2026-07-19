@@ -65,7 +65,7 @@
                 <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <form id="page-form">
+                <form id="page-form" onsubmit="event.preventDefault();">
                     <input type="hidden" id="page-id">
                     <div class="form-group">
                         <label class="form-label">Título</label>
@@ -109,6 +109,15 @@
         const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
         let supabase; try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); else alert("Erro de conexão ao carregar o sistema."); } catch(e) { console.error(e); }
+
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+        checkAuth();
+        
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -172,7 +181,7 @@
                     <div class="text-sm text-muted">/${page.slug}</div>
                     
                     <div class="mt-2 pt-2 border-t" style="border-top: 1px solid var(--admin-border); display:flex; gap:1rem; flex-wrap:wrap;">
-                        <button class="btn btn-secondary btn-sm" onclick='openModal(${JSON.stringify(page).replace(/'/g, "&#39;")})'>
+                        <button class="btn btn-secondary btn-sm" onclick='openModal(${JSON.stringify(page).replace(/'/g, "&#39;").replace(/"/g, "&quot;")})'>
                             <i class="fas fa-cog"></i> Configs
                         </button>
                         <a href="page-builder.html?id=${page.id}" class="btn btn-primary btn-sm">
