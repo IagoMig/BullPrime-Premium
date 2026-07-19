@@ -83,7 +83,7 @@
     <div class="admin-card login-card">
         <div class="login-logo">Bull Prime</div>
         
-        <form id="loginForm" class="login-form" onsubmit="event.preventDefault(); handleLogin(event);">
+        <form id="loginForm" class="login-form">
             <div class="form-group">
                 <label class="form-label">Email</label>
                 <input type="email" id="email" class="form-input" required placeholder="admin@bullprime.com">
@@ -94,7 +94,7 @@
                 <input type="password" id="password" class="form-input" required placeholder="••••••••">
             </div>
             
-            <button type="submit" id="loginBtn" class="btn btn-primary login-btn">
+            <button type="button" id="loginBtn" class="btn btn-primary login-btn" onclick="handleLogin(event)">
                 <span class="btn-text">ENTRAR</span>
                 <span class="loading-text">
                     <div class="loading-spinner"></div>
@@ -142,6 +142,12 @@
 
         async function handleLogin(e) {
             if (e) e.preventDefault();
+
+            const form = document.getElementById('loginForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
             
             if (!supabase) {
                 showToast('Sistema indisponível no momento. Tente novamente.');
