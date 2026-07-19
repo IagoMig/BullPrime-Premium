@@ -86,15 +86,15 @@
         <form id="loginForm" class="login-form">
             <div class="form-group">
                 <label class="form-label">Email</label>
-                <input type="email" id="email" class="form-input" required placeholder="admin@bullprime.com">
+                <input type="email" id="email" class="form-input" placeholder="admin@bullprime.com">
             </div>
             
             <div class="form-group mb-4">
                 <label class="form-label">Senha</label>
-                <input type="password" id="password" class="form-input" required placeholder="••••••••">
+                <input type="password" id="password" class="form-input" placeholder="••••••••">
             </div>
             
-            <button type="button" id="loginBtn" class="btn btn-primary login-btn" onclick="handleLogin(event)">
+            <button type="submit" id="loginBtn" class="btn btn-primary login-btn">
                 <span class="btn-text">ENTRAR</span>
                 <span class="loading-text">
                     <div class="loading-spinner"></div>
@@ -104,84 +104,88 @@
     </div>
 
     <script>
+        // 1. Funções Auxiliares Seguras
         function showToast(message, type = 'error') {
             const container = document.getElementById('toastContainer');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
             toast.textContent = message;
-            
             container.appendChild(toast);
-            
             setTimeout(() => {
                 toast.classList.add('hiding');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
-        let supabase;
-        try {
-            const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
-            
-            if (window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                
-                // Check auth on load
-                supabase.auth.getSession().then(({ data: { session } }) => {
-                    if (session) {
-                        window.location.href = 'dashboard.html';
-                    }
-                }).catch(err => console.error("Session error:", err));
-            } else {
-                console.error("Supabase CDN not loaded.");
-                showToast('Erro de conexão. Verifique sua internet.', 'error');
-            }
-        } catch (e) {
-            console.error("Initialization error:", e);
-        }
-
-        async function handleLogin(e) {
-            if (e) e.preventDefault();
-
+        // 2. Proteção Absoluta do Formulário (Obrigatório vir antes de qualquer inicialização)
+        document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('loginForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-            
-            if (!supabase) {
-                showToast('Sistema indisponível no momento. Tente novamente.');
-                return;
-            }
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault(); // Impede o envio do form (e recarregamento com ?)
+                    
+                    const email = document.getElementById('email').value.trim();
+                    const password = document.getElementById('password').value.trim();
+                    
+                    if (!email || !password) {
+                        showToast('Por favor, preencha o e-mail e a senha.', 'warning');
+                        return;
+                    }
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('loginBtn');
-            
-            btn.classList.add('is-loading');
-            btn.disabled = true;
+                    if (!window.supabaseClient) {
+                        showToast('Sistema carregando ou indisponível. Verifique sua conexão.', 'error');
+                        return;
+                    }
 
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
+                    const btn = document.getElementById('loginBtn');
+                    btn.classList.add('is-loading');
+                    btn.disabled = true;
+
+                    try {
+                        const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+                            email,
+                            password
+                        });
+
+                        if (error) {
+                            showToast('Credenciais inválidas. Tente novamente.', 'error');
+                        } else {
+                            showToast('Login bem-sucedido!', 'success');
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 500);
+                        }
+                    } catch (err) {
+                        console.error('Login error:', err);
+                        showToast('Erro ao conectar ao servidor. Tente novamente.', 'error');
+                    } finally {
+                        btn.classList.remove('is-loading');
+                        btn.disabled = false;
+                    }
                 });
-
-                if (error) {
-                    showToast('Credenciais inválidas. Tente novamente.');
-                } else {
-                    showToast('Login bem-sucedido!', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 500);
-                }
-            } catch (err) {
-                showToast('Erro ao conectar. Tente novamente.');
-            } finally {
-                btn.classList.remove('is-loading');
-                btn.disabled = false;
             }
-        }
+
+            // 3. Inicialização do Supabase (Apenas após proteger o formulário)
+            try {
+                const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
+                const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
+                
+                if (window.supabase) {
+                    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    
+                    // Verifica se já está logado
+                    window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                        if (session) window.location.href = 'dashboard.html';
+                    }).catch(err => console.error("Session check failed:", err));
+                } else {
+                    console.error("Supabase script failed to load via CDN.");
+                    showToast('O sistema não conseguiu carregar. Recarregue a página.', 'warning');
+                }
+            } catch (initErr) {
+                console.error("Supabase init error:", initErr);
+            }
+        });
     </script>
 </body>
 </html>
