@@ -254,14 +254,58 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .masonry-title { font-size: 1.8rem !important; }
   .glass-vision { padding: 2rem; }
   
-  /* Flexbox inline reversions */
+  /* Flexbox e Grid inline reversions for Home Page */
   div[style*="display: flex; gap: 2rem;"] {
     flex-direction: column; gap: 1rem !important;
+  }
+  div[style*="grid-template-columns: 1fr 1fr;"] {
+    grid-template-columns: 1fr !important;
   }
   div[style*="width: 1px;"] {
     width: 100% !important; height: 1px !important; margin: 1rem 0;
   }
   
+  /* Ajuste de botões na Hero para não quebrarem a tela */
+  .hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    padding: 0 1rem;
+  }
+  .hero-buttons .btn-primary, .hero-buttons .btn-outline {
+    width: 100%;
+  }
+
+  /* Ajuste de imagens Masonry da Home no mobile */
+  .masonry-card .masonry-bg {
+    width: 100% !important;
+    height: 100% !important;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0.2) 100%) !important;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0.2) 100%) !important;
+  }
+  .masonry-card .masonry-overlay {
+    background: linear-gradient(to top, rgba(5,4,3,1) 20%, transparent 100%) !important;
+  }
+  .masonry-card .masonry-content {
+    max-width: 100% !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    text-align: left !important;
+  }
+  .masonry-card .masonry-icon {
+    display: flex !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Diferenciais Grid Mobile */
+  .diferenciais-grid {
+    grid-template-columns: 1fr !important;
+  }
+
   /* Footer */
   .footer { padding: 4rem 0 2rem; }
   .footer-bottom { flex-direction: column; align-items: flex-start !important; gap: 1.5rem; text-align: left; }
