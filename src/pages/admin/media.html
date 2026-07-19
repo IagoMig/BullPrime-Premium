@@ -75,7 +75,7 @@
     <script>
         const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase; try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); else alert("Erro de conexão ao carregar o sistema."); } catch(e) { console.error(e); }
 
         // UI Helpers
         function showToast(message, type = 'success') {
