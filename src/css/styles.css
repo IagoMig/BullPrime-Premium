@@ -1,0 +1,681 @@
+/* ============================================================
+   BULL PRIME PREMIUM - GOD MODE STYLES
+   ============================================================ */
+
+/* -----------------------------------------
+   1. FONTES E VARIÁVEIS
+   ----------------------------------------- */
+@font-face {
+  font-family: 'Restweek';
+  src: url('../../public/Restweek.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+/* ========================================
+   11. PREMIUM FORMS (Contato)
+======================================== */
+.form-group {
+  margin-bottom: 2.5rem;
+  position: relative;
+}
+.form-label {
+  display: block;
+  font-family: 'Lato', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
+}
+.form-input, .form-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  border-radius: 0;
+  padding: 0.5rem 0;
+  color: #fff;
+  font-family: 'Lato', sans-serif;
+  font-size: 1.1rem;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.form-input:focus, .form-textarea:focus {
+  outline: none;
+  border-bottom-color: var(--color-accent);
+  box-shadow: 0 10px 10px -10px rgba(210, 150, 127, 0.4);
+}
+.form-group:focus-within .form-label {
+  color: var(--color-accent);
+}
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+@font-face {
+  font-family: 'Lato';
+  src: url('../../public/Lato-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Cores - Luxo Cinematográfico */
+  --color-bg: #050403; /* Fundo abissal quase preto com tom extremamente sutil de marrom/quente */
+  --color-void: #000000;
+  --color-accent: #c48b71; /* Rose Gold refinado */
+  --color-text: #ffffff;
+  --color-text-muted: #888888;
+  
+  /* Física do Vidro (VisionOS) */
+  --glass-bg: rgba(15, 12, 10, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.15), inset 0 0 40px rgba(255, 255, 255, 0.02);
+  --glass-shadow: 0 40px 80px rgba(0, 0, 0, 0.8);
+
+  /* Curvas Táteis (Física da UI) */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  --ease-cinematic: cubic-bezier(0.19, 1, 0.22, 1);
+  
+  /* Estrutura */
+  --container-w: 1400px;
+  --radius-lg: 24px;
+}
+
+/* -----------------------------------------
+   2. RESET E BASE
+   ----------------------------------------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+a { text-decoration: none; color: inherit; }
+img { max-width: 100%; display: block; object-fit: cover; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+.container {
+  width: 100%; max-width: var(--container-w);
+  margin: 0 auto; padding: 0 2rem;
+}
+.container-narrow { max-width: 900px; }
+
+/* -----------------------------------------
+   3. BOTÕES TÁTEIS
+   ----------------------------------------- */
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  background-color: var(--color-accent);
+  color: #000;
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
+  font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  transition: all 0.4s var(--ease-spring);
+  box-shadow: 0 10px 30px rgba(196, 139, 113, 0.15);
+}
+.btn-primary:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(196, 139, 113, 0.3);
+}
+
+.btn-outline {
+  display: inline-flex; align-items: center; justify-content: center;
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
+  font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  transition: all 0.4s var(--ease-spring);
+}
+.btn-outline:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.4);
+  transform: translateY(-4px);
+}
+
+/* Efeito Glow para textos cruciais */
+.text-accent-glow {
+  color: #fff;
+  text-shadow: 0 0 40px rgba(196, 139, 113, 0.3);
+}
+
+/* -----------------------------------------
+   11. GOD MODE PAGE TRANSITION
+   ----------------------------------------- */
+.page-transition-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: #050403;
+  z-index: 9999;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  /* Instead of just opacity, let's use a dark curtain that fades and blurs */
+  opacity: 0;
+  backdrop-filter: blur(0px);
+  transition: opacity 0.8s cubic-bezier(0.85, 0, 0.15, 1), backdrop-filter 0.8s;
+}
+.page-transition-overlay.is-active {
+  opacity: 1;
+  backdrop-filter: blur(20px);
+  pointer-events: all;
+}
+
+.transition-logo {
+  font-family: 'Restweek', cursive;
+  font-size: 5rem;
+  color: var(--color-accent);
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+  transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: 0.2s;
+  text-shadow: 0 0 40px rgba(210, 150, 127, 0.5);
+}
+.page-transition-overlay.is-active .transition-logo {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* -----------------------------------------
+   4. NAVBAR FLUTUANTE (GOD MODE)
+   ----------------------------------------- */
+.navbar-wrapper {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 2rem 0;
+  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.navbar-wrapper.scrolled {
+  position: fixed;
+  padding: 1rem 0;
+  background: rgba(5, 4, 3, 0.7);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.navbar {
+  max-width: var(--container-w);
+  margin: 0 auto; padding: 0 3rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.navbar-brand {
+  font-family: 'Restweek', cursive;
+  font-size: 2.5rem;
+  color: #fff;
+  line-height: 1;
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+.navbar-brand:hover {
+  color: var(--color-accent);
+  text-shadow: 0 0 20px rgba(210, 150, 127, 0.4);
+}
+
+.nav-links {
+  display: flex; align-items: center; gap: 2.5rem;
+  background: rgba(10, 8, 7, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 0.75rem 2.5rem; 
+  border-radius: 50px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.nav-link {
+  position: relative;
+  font-family: 'Lato', sans-serif;
+  font-size: 0.7rem; font-weight: 600; color: #fff;
+  text-transform: uppercase; letter-spacing: 2px;
+  opacity: 0.6; transition: all 0.4s ease;
+  display: flex; align-items: center; gap: 4px;
+}
+.nav-link:hover { 
+  opacity: 1; 
+  color: #fff; 
+}
+.nav-link.active {
+  opacity: 1; 
+  color: var(--color-accent);
+}
+
+/* Glowing dot indicator for active links */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.nav-link.active::after {
+  transform: translateX(-50%) scale(1);
+}
+
+.nav-link small { font-size: 0.5rem; text-transform: lowercase; opacity: 0.5; }
+
+.btn-nav {
+  display: inline-flex; align-items: center; justify-content: center;
+  background-color: var(--color-accent);
+  color: #050403;
+  padding: 0.75rem 2rem;
+  border-radius: 4px;
+  font-family: 'Lato', sans-serif;
+  font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 4px 15px rgba(210, 150, 127, 0.2);
+  border: 1px solid transparent;
+}
+.btn-nav:hover {
+  background-color: transparent;
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 10px 25px rgba(210, 150, 127, 0.4);
+  transform: translateY(-2px);
+}
+
+.hamburger { display: none; color: #fff; background: none; border: none; cursor: pointer; transition: color 0.3s ease; }
+.hamburger:hover { color: var(--color-accent); }
+
+/* -----------------------------------------
+   5. LENIS E ESTRUTURA DO ABISMO (HERO FIXA)
+   ----------------------------------------- */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* A Hero fica pregada na tela no nível mais baixo */
+.hero-wrapper {
+  position: relative;
+  width: 100%; height: 100vh;
+  z-index: 1;
+}
+.hero {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100vh;
+  display: flex; align-items: center;
+  overflow: hidden; background: var(--color-void);
+  z-index: 1;
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center right;
+  z-index: 1;
+  /* Imagem levemente escalonada para o parallax do Lenis */
+  transform: scale(1.05); 
+}
+.hero-overlay-deep {
+  position: absolute; inset: 0;
+  /* Gradiente abissal 70% engolindo a imagem para texto saltar */
+  background: linear-gradient(to right, 
+    rgba(5, 4, 3, 1) 0%, 
+    rgba(5, 4, 3, 0.8) 45%, 
+    rgba(5, 4, 3, 0) 100%),
+    linear-gradient(to top, rgba(5,4,3,1) 0%, transparent 20%);
+  z-index: 2;
+}
+
+.hero-content {
+  position: relative; z-index: 3;
+  width: 100%; padding-top: 5rem;
+}
+.hero-eyebrow {
+  color: var(--color-text-muted); font-size: 1rem;
+  margin-bottom: -1rem; display: block;
+}
+.hero-title-script {
+  font-family: 'Restweek', cursive; font-size: 8rem; color: var(--color-accent);
+  line-height: 1; display: block; margin-left: -0.5rem; margin-top: 1rem;
+}
+.hero-title-sans {
+  font-size: 4rem; font-weight: 300; letter-spacing: -1px;
+  color: #fff; line-height: 1.1; display: block;
+}
+.hero-description {
+  color: var(--color-text-muted); max-width: 480px;
+  font-size: 1.05rem; line-height: 1.6; margin-bottom: 3rem; margin-top: 1rem;
+}
+
+/* Selo Flutuante Animado */
+.hero-seal {
+  position: absolute; top: 35%; right: 10%;
+  width: 180px; height: 180px; border-radius: 50%;
+  border: 1px dashed rgba(255,255,255,0.3);
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  z-index: 4; transform: rotate(15deg);
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+  animation: sealFloat 10s ease-in-out infinite alternate;
+}
+.hero-seal::before {
+  content: ''; position: absolute; inset: 6px;
+  border: 1px solid rgba(255,255,255,0.4); border-radius: 50%;
+}
+.hero-seal span:nth-child(1) { font-family: 'Restweek', cursive; font-size: 2.5rem; color: #fff; line-height: 0.6; }
+.hero-seal span:nth-child(2) { font-size: 1.5rem; color: #fff; line-height: 1; font-weight: 300;}
+.hero-seal span:nth-child(3) { font-size: 0.8rem; color: #fff; letter-spacing: 2px; margin-top: 0.2rem;}
+
+@keyframes sealFloat {
+  0% { transform: translateY(0px) rotate(15deg); }
+  100% { transform: translateY(-20px) rotate(5deg); }
+}
+
+/* Main que desliza brutalmente sobre a Hero */
+.main-content {
+  position: relative; z-index: 10;
+  background: var(--color-bg);
+  box-shadow: 0 -40px 100px rgba(0,0,0,1); /* Sombra pesada destruindo a luz da hero */
+  overflow: hidden;
+}
+
+/* -----------------------------------------
+   6. SEÇÕES E BACKGROUNDS
+   ----------------------------------------- */
+.section-tight { padding: 4rem 0; }
+.section-spacious { padding: 8rem 0; }
+
+.section-with-bg { position: relative; z-index: 10; padding: 8rem 0; background-color: transparent; }
+.section-blurred-bg {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  background-attachment: fixed; filter: blur(15px) brightness(0.2);
+  z-index: -1; transform: scale(1.1);
+}
+
+.section-label { display: block; font-size: 0.75rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 0.5rem; }
+.section-title { font-family: 'Restweek', cursive; font-size: 5rem; color: var(--color-accent); line-height: 1; font-weight: normal; margin-bottom: 1rem; }
+
+/* -----------------------------------------
+   6.5 EDITORIAL GRIDS (Restored)
+   ----------------------------------------- */
+.editorial-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4rem; align-items: start; }
+.ed-span-12 { grid-column: span 12; }
+.ed-span-8 { grid-column: span 8; }
+.ed-span-7 { grid-column: span 7; }
+.ed-span-6 { grid-column: span 6; }
+.ed-span-5 { grid-column: span 5; }
+.ed-span-4 { grid-column: span 4; }
+.ed-item { position: relative; border-radius: var(--radius-lg); overflow: hidden; aspect-ratio: 16/9; }
+.ed-item.tall { aspect-ratio: 3/4; }
+.ed-item img { width: 100%; height: 100%; object-fit: cover; }
+.ed-content-overlay {
+  position: absolute; inset: 0; padding: 3rem; background: linear-gradient(to top, rgba(5,4,3,0.9) 0%, transparent 60%);
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.ed-content-overlay h3 { font-size: 2.5rem; font-weight: 300; margin-bottom: 0.5rem; }
+
+/* -----------------------------------------
+   7. DIFERENCIAIS (2x2 Grid)
+   ----------------------------------------- */
+.diferenciais-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.diff-card {
+  position: relative;
+  background: rgba(10, 8, 7, 0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  min-height: 250px;
+  border: 1px solid rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+}
+.diff-card-bg {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  width: 60%;
+  background-size: cover;
+  background-position: right center;
+  z-index: 1;
+}
+.diff-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(10,8,7,1) 40%, rgba(10,8,7,0.1) 100%);
+  z-index: 2;
+}
+.diff-card-content {
+  position: relative;
+  z-index: 3;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 70%;
+}
+.diff-icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.diff-icon svg { width: 16px; height: 16px; stroke: var(--color-accent); fill: none; }
+.diff-title { font-size: 1.25rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px; }
+.diff-desc { font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.5; }
+
+/* -----------------------------------------
+   8. MASONRY CARDS (Wagyu, Dry Aged, Eventos)
+   ----------------------------------------- */
+.masonry-card {
+  position: relative;
+  background: #050403;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  transition: transform 0.3s ease;
+}
+.masonry-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255,255,255,0.15);
+}
+.masonry-bg {
+  position: absolute;
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+.masonry-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.masonry-content {
+  position: relative;
+  z-index: 3;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+}
+.masonry-icon {
+  margin-bottom: 2rem;
+}
+.masonry-icon svg { width: 24px; height: 24px; stroke: #fff; fill: none; }
+.masonry-title {
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.masonry-desc {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* -----------------------------------------
+   8. VISION-OS GLASS CARDS (O Ápice Físico)
+   ----------------------------------------- */
+.glass-vision {
+  position: relative;
+  background: var(--glass-bg);
+  border-radius: var(--radius-lg);
+  padding: 3rem;
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  border: 1px solid var(--glass-border);
+  transition: transform 0.5s var(--ease-spring), box-shadow 0.5s var(--ease-spring);
+  overflow: hidden;
+}
+.glass-vision::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  /* Borda esmaecendo com CSS Mask */
+  border-radius: inherit; padding: 1px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, transparent 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.glass-vision:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 50px 100px rgba(0,0,0,0.9), var(--glass-highlight);
+  border-color: rgba(255,255,255,0.15);
+}
+
+.glass-content { position: relative; z-index: 2; }
+.glass-icon { margin-bottom: 2rem; }
+.glass-icon svg { width: 32px; height: 32px; stroke: var(--color-accent); }
+.glass-title { font-size: 1.5rem; font-weight: 300; text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 1px; }
+
+/* -----------------------------------------
+   9. REVEAL ANIMATIONS (Nativo)
+   ----------------------------------------- */
+.reveal-blur {
+  opacity: 0; filter: blur(15px); transform: translateY(30px) scale(0.98);
+  transition: opacity 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              filter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              transform 1.2s var(--ease-spring);
+}
+.reveal-blur.visible {
+  opacity: 1; filter: blur(0); transform: translateY(0) scale(1);
+}
+
+/* -----------------------------------------
+   10. FOOTER IMPRESSIONANTE (GOD MODE)
+   ----------------------------------------- */
+.footer {
+  background: var(--color-void);
+  padding: 6rem 0 2rem;
+  border-top: 1px solid rgba(255,255,255,0.03);
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 -40px 100px rgba(0,0,0,0.8);
+}
+
+.footer-top {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 4rem;
+  margin-bottom: 4rem;
+}
+
+@media (max-width: 1024px) {
+  .footer-top { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .footer-top { grid-template-columns: 1fr; }
+}
+
+.footer-col h4 {
+  font-family: 'Lato', sans-serif;
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-col ul li {
+  margin-bottom: 0.75rem;
+}
+
+.footer-col ul li a {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  position: relative;
+  display: inline-block;
+}
+
+.footer-col ul li a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: var(--color-accent);
+  transition: width 0.3s ease;
+}
+
+.footer-col ul li a:hover {
+  color: #fff;
+  transform: translateX(5px);
+}
+.footer-col ul li a:hover::after {
+  width: 100%;
+}
+
+.footer-social-links {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.footer-social-links span {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.footer-social-links span:hover {
+  color: #fff;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.footer-bottom p {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 1px;
+}

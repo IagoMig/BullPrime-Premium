@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bull Prime - Admin Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../css/styles.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --gold: #c9a96e;
+            --dark-bg: #0a0a0a;
+            --panel-bg: #1a1a1a;
+            --text-light: #fff;
+            --text-muted: #888;
+        }
+
+        body.admin-dashboard {
+            margin: 0;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            font-family: 'Lato', sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #111;
+            border-right: 1px solid rgba(201, 169, 110, 0.2);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar-header h2 {
+            font-family: 'Restweek', 'Lato', sans-serif;
+            color: var(--gold);
+            margin: 0;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-nav {
+            flex-grow: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 1rem 1.5rem;
+            display: block;
+            color: #ccc;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: rgba(201, 169, 110, 0.1);
+            color: var(--gold);
+            border-left-color: var(--gold);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            background-color: var(--panel-bg);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .user-email {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .btn-logout:hover {
+            background: var(--gold);
+            color: #000;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .section-pane, .admin-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .section-pane.active, .admin-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Common UI Elements */
+        h1 { margin-top: 0; color: var(--gold); }
+
+        .btn {
+            background-color: var(--gold);
+            color: #000;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Lato', sans-serif;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+        .btn:hover { background-color: #b5955a; }
+        .btn-danger { background-color: #ff4444; color: #fff; }
+        .btn-danger:hover { background-color: #cc0000; }
+        .btn-secondary { background-color: #444; color: #fff; }
+        .btn-secondary:hover { background-color: #333; }
+        
+        .header-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        /* Tables & Lists */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .data-table th, .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .data-table th { color: var(--gold); font-weight: 700; }
+        .data-table tr:hover td { background-color: rgba(255,255,255,0.02); }
+        .action-btns { display: flex; gap: 0.5rem; }
+
+        /* Forms */
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #ccc; }
+        .form-control {
+            width: 100%; padding: 0.75rem;
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; border-radius: 4px; font-family: 'Lato', sans-serif;
+            box-sizing: border-box;
+        }
+        .form-control:focus { outline: none; border-color: var(--gold); }
+        textarea.form-control { resize: vertical; min-height: 100px; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: var(--panel-bg); border: 1px solid rgba(201,169,110,0.2);
+            padding: 2rem; border-radius: 8px; width: 100%; max-width: 600px;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+        .modal-title { margin: 0; color: var(--gold); }
+        .close-modal { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+        /* Toasts */
+        .toast-container {
+            position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            background: #111; border-left: 4px solid var(--gold); color: #fff;
+            padding: 1rem; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        .toast.error { border-left-color: #ff4444; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Dashboard Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card {
+            background: var(--panel-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(201,169,110,0.1);
+            text-align: center;
+        }
+        .stat-card h3 { margin: 0 0 0.5rem 0; color: #ccc; font-size: 1rem; font-weight: 400; }
+        .stat-card .value { font-size: 2rem; color: var(--gold); font-weight: 700; margin: 0; }
+
+    </style>
+</head>
+<body class="admin-dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Bull Prime</h2>
+        </div>
+        <nav class="sidebar-nav" id="sidebarNav">
+            <a class="nav-item active" data-target="dashboard">Dashboard</a>
+            <a class="nav-item" data-target="site_content">Conteúdo do Site</a>
+            <a class="nav-item" data-target="hero_slides">Hero Banner</a>
+            <a class="nav-item" data-target="product_lines">Linhas de Produtos</a>
+            <a class="nav-item" data-target="cuts">Cortes</a>
+            <a class="nav-item" data-target="units">Unidades</a>
+            <a class="nav-item" data-target="events">Eventos</a>
+            <a class="nav-item" data-target="messages">Mensagens</a>
+            <a class="nav-item" data-target="settings">Configurações</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="topbar">
+            <div class="user-info">
+                <span class="user-email" id="userEmail">Carregando...</span>
+                <button class="btn-logout" id="btnLogout">Sair</button>
+            </div>
+        </header>
+
+        <div class="content-area">
+            
+            <!-- Dashboard Pane -->
+            <section class="section-pane admin-section active" id="pane-dashboard">
+                <h1>Visão Geral</h1>
+                <div class="stats-grid">
+                    <div class="stat-card"><h3>Total de Conteúdos</h3><p class="value" id="stat-contents">-</p></div>
+                    <div class="stat-card"><h3>Linhas Ativas</h3><p class="value" id="stat-lines">-</p></div>
+                    <div class="stat-card"><h3>Unidades</h3><p class="value" id="stat-units">-</p></div>
+                    <div class="stat-card"><h3>Mensagens Não Lidas</h3><p class="value" id="stat-messages">-</p></div>
+                </div>
+                <h2 style="margin-top: 2rem; color: var(--gold); font-size: 1.2rem;">Mensagens Recentes</h2>
+                <div id="recent-messages" style="background: var(--panel-bg); border-radius: 8px; border: 1px solid rgba(201,169,110,0.1); margin-top: 1rem;"></div>
+            </section>
+
+            <!-- Generic List Pane (will be populated dynamically) -->
+            <section class="section-pane admin-section" id="pane-generic">
+                <div class="header-action">
+                    <h1 id="generic-title">Título</h1>
+                    <button class="btn" id="btn-generic-add">Adicionar Novo</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table" id="generic-table">
+                        <thead id="generic-thead"></thead>
+                        <tbody id="generic-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Generic Modal -->
+    <div class="modal-overlay" id="genericModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Editar</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <form id="genericForm">
+                <div id="modalFormContent"></div>
+                <div style="margin-top: 1.5rem; text-align: right;">
+                    <button type="button" class="btn btn-secondary" id="cancelModal">Cancelar</button>
+                    <button type="submit" class="btn" id="saveModal">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h2 class="modal-title" style="margin-bottom: 1rem;">Confirmar Exclusão</h2>
+            <p style="margin-bottom: 2rem;">Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.</p>
+            <div style="display: flex; justify-content: center; gap: 1rem;">
+                <button type="button" class="btn btn-secondary" id="cancelConfirm">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="../../js/admin.js"></script>
+</body>
+</html>

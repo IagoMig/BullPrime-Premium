@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bull Prime — A Experiência Definitiva em Carnes Nobres</title>
+    <link rel="icon" type="image/png" href="./public/logo.png">
+    <link rel="stylesheet" href="src/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div id="header"></div>
+
+    <!-- ========================================
+         HERO CINEMATOGRÁFICA
+    ======================================== -->
+    <div class="hero-wrapper">
+        <section class="hero" id="hero">
+            <div class="hero-bg" style="background-image: url('public/background-01.jpeg');"></div>
+            <!-- Overlay abissal que esmaga a imagem e puxa o foco pro texto -->
+            <div class="hero-overlay-deep"></div>
+            
+            <div class="hero-seal reveal-blur" data-delay="600">
+                <span>Premium</span>
+                <span>Quality</span>
+                <span>100 %</span>
+            </div>
+
+            <div class="container hero-content">
+                <span class="hero-eyebrow reveal-blur">—A Experiência Definitiva em Carnes Nobres</span>
+                <h1 class="hero-title-group reveal-blur" data-delay="100">
+                    <span class="hero-title-script">Referencia em</span>
+                    <span class="hero-title-sans text-accent-glow">WAGYU & DRY AGED</span>
+                </h1>
+                <p class="hero-description reveal-blur" data-delay="200">
+                    Um açougue completo com as melhores carnes do mundo.<br>
+                    Carnes nobres das melhores raças, com a melhor qualidade<br>
+                    em Curitiba e Joinville.
+                </p>
+                <div class="hero-buttons reveal-blur" data-delay="300">
+                    <a href="src/pages/sobre.html" class="btn-primary">CONHEÇA A BULLPRIME &rarr;</a>
+                    <a href="src/pages/cardapio.html" class="btn-outline">VER CATÁLOGO</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MAIN CONTENT (Desliza maciçamente sobre a Hero) -->
+    <main class="main-content">
+
+        <!-- ========================================
+             MASONRY CARDS (Print 1)
+        ======================================== -->
+        <section class="section-tight" style="padding-top: 6rem; padding-bottom: 2rem;">
+            <div class="container">
+                <div class="editorial-grid">
+                    
+                    <!-- WAGYU (Top Left - Span 8) -->
+                    <div class="ed-span-8 masonry-card reveal-blur" style="min-height: 400px;">
+                        <div class="masonry-bg" style="background-image: url('public/01.wagyu.jpg'); top: 0; bottom: 0; right: 0; width: 60%; mask-image: linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);"></div>
+                        <div class="masonry-overlay" style="background: linear-gradient(to right, rgba(5,4,3,1) 40%, transparent 100%);"></div>
+                        <div class="masonry-content" style="max-width: 50%;">
+                            <div class="masonry-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                            <h3 class="masonry-title">WAGYU</h3>
+                            <p class="masonry-desc">O corte mais nobre do mundo na sua mesa.</p>
+                        </div>
+                    </div>
+
+                    <!-- DRY AGED (Top Right - Span 4) -->
+                    <div class="ed-span-4 masonry-card reveal-blur" data-delay="100" style="min-height: 400px;">
+                        <div class="masonry-bg" style="background-image: url('public/02.dryaged.png'); left: 0; top: 0; right: 0; width: 100%; height: 50%; mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);"></div>
+                        <div class="masonry-overlay" style="background: linear-gradient(to top, rgba(5,4,3,1) 50%, transparent 100%);"></div>
+                        <div class="masonry-content" style="position: absolute; bottom: 0; width: 100%;">
+                            <div class="masonry-icon"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v2H5v13h14V9h-2V7a5 5 0 0 0-5-5z"/></svg></div>
+                            <h3 class="masonry-title">DRY AGED</h3>
+                            <p class="masonry-desc">A arte da maturação a seco no padrão Bull Prime</p>
+                        </div>
+                    </div>
+
+                    <!-- EVENTOS (Bottom Left - Span 4) -->
+                    <div class="ed-span-4 masonry-card reveal-blur" style="min-height: 400px;">
+                        <div class="masonry-bg" style="background-image: url('public/03.eventos.png'); left: 0; top: 0; right: 0; width: 100%; height: 50%; mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);"></div>
+                        <div class="masonry-overlay" style="background: linear-gradient(to top, rgba(5,4,3,1) 50%, transparent 100%);"></div>
+                        <div class="masonry-content" style="position: absolute; bottom: 0; width: 100%;">
+                            <div class="masonry-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                            <h3 class="masonry-title">EVENTOS</h3>
+                            <p class="masonry-desc">Transforme o seu evento em uma verdadeira experiência.</p>
+                        </div>
+                    </div>
+
+                    <!-- EXPERIÊNCIAS (Bottom Right - Span 8) -->
+                    <div class="ed-span-8 masonry-card reveal-blur" data-delay="100" style="min-height: 400px;">
+                        <div class="masonry-bg" style="background-image: url('public/04.experiencias.jpg'); left: 0; top: 0; bottom: 0; width: 60%; mask-image: linear-gradient(to right, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);"></div>
+                        <div class="masonry-overlay" style="background: linear-gradient(to left, rgba(5,4,3,1) 40%, transparent 100%);"></div>
+                        <div class="masonry-content" style="position: absolute; right: 0; top: 0; bottom: 0; max-width: 50%; text-align: right; justify-content: center;">
+                            <div class="masonry-icon" style="display: flex; justify-content: flex-end;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                            <h3 class="masonry-title">EXPERIÊNCIAS</h3>
+                            <p class="masonry-desc">Brasa, técnica e pratos inesquecíveis.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================
+             DIFERENCIAIS BULLPRIME (Print 2 - Blurred BG)
+        ======================================== -->
+        <section class="section-with-bg">
+            <div class="section-blurred-bg" style="background-image: url('public/background-01.jpeg');"></div>
+            
+            <div class="container relative z-10">
+                <div class="reveal-blur" style="text-align: center; margin-bottom: 4rem;">
+                    <span class="section-label">EXCELÊNCIA EM CADA DETALHE</span>
+                    <h2 class="section-title">Diferenciais Bullprime</h2>
+                </div>
+
+                <div class="diferenciais-grid">
+                    <!-- Card 1 -->
+                    <div class="diff-card reveal-blur" data-delay="100">
+                        <div class="diff-card-bg" style="background-image: url('public/01.wagyu.jpg');"></div>
+                        <div class="diff-card-overlay"></div>
+                        <div class="diff-card-content">
+                            <div class="diff-icon">
+                                <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <h3 class="diff-title">QUALIDADE PREMIUM</h3>
+                            <p class="diff-desc">Cortes selecionados com rigor absoluto das melhores raças do mundo, garantindo um padrão inigualável de excelência.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="diff-card reveal-blur" data-delay="200">
+                        <div class="diff-card-bg" style="background-image: url('public/06.blackseries.heic');"></div>
+                        <div class="diff-card-overlay"></div>
+                        <div class="diff-card-content">
+                            <div class="diff-icon">
+                                <svg viewBox="0 0 24 24"><path d="M2 20h20M5 20V9l4 4 3-8 3 8 4-4v11"/></svg>
+                            </div>
+                            <h3 class="diff-title">WAGYU CERTIFICADO</h3>
+                            <p class="diff-desc">Marmoreio excepcional, textura amanteigada e sabor incomparável.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="diff-card reveal-blur" data-delay="300">
+                        <div class="diff-card-bg" style="background-image: url('public/02.dryaged.png');"></div>
+                        <div class="diff-card-overlay"></div>
+                        <div class="diff-card-content">
+                            <div class="diff-icon">
+                                <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v2H5v13h14V9h-2V7a5 5 0 0 0-5-5z"/></svg>
+                            </div>
+                            <h3 class="diff-title">DRY AGED EXCLUSIVO</h3>
+                            <p class="diff-desc">Maturação a seco meticulosamente controlada para máxima maciez e sabor intenso.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="diff-card reveal-blur" data-delay="400">
+                        <div class="diff-card-bg" style="background-image: url('public/03.eventos.png');"></div>
+                        <div class="diff-card-overlay"></div>
+                        <div class="diff-card-content">
+                            <div class="diff-icon">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            </div>
+                            <h3 class="diff-title">EVENTOS & CURSOS</h3>
+                            <p class="diff-desc">Experiências gastronômicas imersivas e corporativas estruturadas para os verdadeiros apreciadores da carne.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================
+             LINHAS PREMIUM / CORTES (EDITORIAL GRID MISTO)
+        ======================================== -->
+        <section class="section-spacious">
+            <div class="container">
+                <div class="reveal-blur" style="text-align: center; margin-bottom: 5rem;">
+                    <span class="section-label">Seleção Bull Prime</span>
+                    <h2 class="section-title">Linhas Premium</h2>
+                    <p style="color: var(--color-text-muted); max-width: 600px; margin: 0 auto; font-size: 1.1rem;">
+                        Da linha dia a dia, até o corte mais exclusivo, cada linha carrega o mesmo compromisso: qualidade sem concessão. Escolha a sua e descubra por que a Bull Prime é referência em carnes nobres.
+                    </p>
+                </div>
+                
+                <div class="editorial-grid">
+                    <!-- Black Series (Gigante Esquerda) -->
+                    <div class="ed-item ed-span-6 tall reveal-blur">
+                        <img src="public/imagem2.png" alt="Black Series">
+                        <div class="ed-content-overlay">
+                            <span class="section-label" style="color: var(--color-accent);">1.</span>
+                            <h3>Black Series</h3>
+                            <a href="src/pages/cardapio.html" class="btn-outline" style="border: none; padding: 0; color: var(--color-accent); font-size: 0.65rem;">EXPLORAR &nearr;</a>
+                        </div>
+                    </div>
+
+                    <div class="ed-span-6" style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+                        <!-- 1906 Angus Beef -->
+                        <div class="ed-item reveal-blur" data-delay="100" style="aspect-ratio: 21/9;">
+                            <img src="public/imagem3.png" alt="1906 Angus Beef">
+                            <div class="ed-content-overlay">
+                                <span class="section-label" style="color: var(--color-accent);">2.</span>
+                                <h3>1906 Angus Beef</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Dia a Dia e Cordeiro lado a lado -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <div class="ed-item reveal-blur" data-delay="200" style="aspect-ratio: 1;">
+                                <img src="public/08.diadia.jpg" alt="Dia a Dia">
+                                <div class="ed-content-overlay">
+                                    <span class="section-label" style="color: var(--color-accent);">3.</span>
+                                    <h3 style="font-size: 1.8rem;">Dia a Dia</h3>
+                                </div>
+                            </div>
+                            <div class="ed-item reveal-blur" data-delay="300" style="aspect-ratio: 1;">
+                                <img src="public/09.cordeiro.jpg" alt="Cordeiro">
+                                <div class="ed-content-overlay">
+                                    <span class="section-label" style="color: var(--color-accent);">4.</span>
+                                    <h3 style="font-size: 1.8rem;">Cordeiro</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================
+             RESTAURANTES (FUSÃO DE IMAGEM E VIDRO)
+        ======================================== -->
+        <section class="section-spacious" style="position: relative; overflow: hidden; min-height: 100vh; display: flex; align-items: center;">
+            <div style="position: absolute; inset: 0; background: url('public/05.restaurantes.png') center/cover; opacity: 0.6; z-index: 0; filter: contrast(1.2);"></div>
+            <div style="position: absolute; inset: 0; background: linear-gradient(to right, var(--color-bg) 0%, rgba(5,4,3,0.3) 100%); z-index: 1;"></div>
+            
+            <div class="container" style="position: relative; z-index: 2;">
+                <div class="editorial-grid">
+                    <div class="ed-span-6 reveal-blur">
+                        <div class="glass-vision" style="padding: 4rem;">
+                            <span class="section-label" style="color: var(--color-accent);">Experiência Gastronômica</span>
+                            <h2 style="font-size: 3rem; font-weight: 300; line-height: 1.1; margin-bottom: 2rem;">
+                                Restaurantes de Carne Premium em Curitiba
+                            </h2>
+                            <p style="color: var(--color-text-muted); font-size: 1.1rem; line-height: 1.6; margin-bottom: 3rem;">
+                                A Bull Prime reúne o melhor da gastronomia em carnes nobres, como Wagyu, Angus, Dry Aged e Cordeiro, em ambientes sofisticados e aconchegantes. Steakhouse, parrilla e açougue premium em um só lugar. Encontre a unidade mais próxima e venha viver essa experiência!
+                            </p>
+                            <a href="src/pages/unidades.html" class="btn-primary">Encontre a unidade mais próxima</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <div id="footer"></div>
+
+    </main>
+
+    <!-- JS DO SISTEMA -->
+    <script src="src/js/supabase.js"></script>
+    <script src="src/js/content.js"></script>
+    <script src="src/components/header.js"></script>
+    <script src="src/components/footer.js"></script>
+    <script src="src/js/animations.js"></script>
+</body>
+</html>
