@@ -215,12 +215,37 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .section-spacious { padding: 4rem 0; }
   .section-with-bg { padding: 4rem 0; }
 
-  /* Hero */
-  .hero-title-script { font-size: 4rem; margin-left: 0; }
-  .hero-title-sans { font-size: 2.5rem; letter-spacing: 2px; }
-  .hero-content { padding-top: 6rem; }
-  .hero-description { font-size: 1rem; padding: 0 1rem; }
-  .hero-seal { display: none; } /* Esconde o selo flutuante para limpar a tela no mobile */
+  /* Hero Fixes Extremos */
+  .hero-content { 
+    padding-top: 8rem !important; /* Limpa a navbar fixa */
+    padding-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .hero-eyebrow {
+    font-size: 0.75rem !important;
+    margin-bottom: 1rem !important;
+    display: block;
+  }
+  .hero-title-script { 
+    font-size: 16vw !important; /* Escala fluidamente com a tela */
+    line-height: 1.1 !important;
+    margin-left: 0 !important; 
+    margin-bottom: -1rem !important;
+  }
+  .hero-title-sans { 
+    font-size: 11vw !important; 
+    letter-spacing: 2px !important; 
+  }
+  .hero-description { 
+    font-size: 1rem !important; 
+    padding: 0 !important; 
+    margin-top: 1.5rem !important;
+    margin-bottom: 2.5rem !important;
+  }
+  .hero-seal { display: none !important; } /* Força esconder o selo */
 
   /* Navbar Mobile */
   .hamburger { display: block; z-index: 1001; }
