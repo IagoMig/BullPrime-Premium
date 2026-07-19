@@ -275,7 +275,7 @@
                     <td>${item.section}</td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn-icon" onclick="if(event) event.preventDefault(); openModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item)).replace(/'/g, \"%27\")}')))"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon" onclick="if(event) event.preventDefault(); openModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item)).replace(/'/g, "%27")}')))"><i class="fas fa-edit"></i></button>
                             <button class="btn-icon text-danger" onclick="deleteContent('${item.id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
