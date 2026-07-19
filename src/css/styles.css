@@ -188,6 +188,86 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   transform: translateY(0) scale(1);
 }
 
+/* =======================================
+   12. RESPONSIVIDADE TOTAL (GOD MODE)
+   ======================================= */
+@media (max-width: 1024px) {
+  /* Editorial Grid adaptável para Tablet */
+  .editorial-grid { gap: 2rem; }
+  .ed-span-7, .ed-span-5, .ed-span-8, .ed-span-4, .ed-span-6 {
+    grid-column: span 12; /* Empilha tudo em telas médias */
+  }
+  .ed-span-5 .masonry-card { transform: none !important; } /* Tira o offset lateral */
+
+  .hero-title-script { font-size: 6rem; }
+  .hero-title-sans { font-size: 3.5rem; }
+  
+  .navbar { padding: 0 1.5rem; }
+  .nav-links { gap: 1.5rem; padding: 0.75rem 1.5rem; }
+}
+
+@media (max-width: 768px) {
+  /* Ajustes Globais */
+  :root {
+    --container-w: 100%;
+  }
+  .container { padding: 0 1.5rem; }
+  .section-spacious { padding: 4rem 0; }
+  .section-with-bg { padding: 4rem 0; }
+
+  /* Hero */
+  .hero-title-script { font-size: 4rem; margin-left: 0; }
+  .hero-title-sans { font-size: 2.5rem; letter-spacing: 2px; }
+  .hero-content { padding-top: 6rem; }
+  .hero-description { font-size: 1rem; padding: 0 1rem; }
+  .hero-seal { display: none; } /* Esconde o selo flutuante para limpar a tela no mobile */
+
+  /* Navbar Mobile */
+  .hamburger { display: block; z-index: 1001; }
+  .nav-links {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(5, 4, 3, 0.95);
+    backdrop-filter: blur(20px);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    border-radius: 0;
+    border: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.5s var(--ease-cinematic);
+    z-index: 1000;
+  }
+  .nav-links.active {
+    opacity: 1; pointer-events: all;
+  }
+  .nav-link { font-size: 1.2rem; }
+  .nav-reserva { display: none; } /* Pode adicionar o botão no menu mobile se quiser */
+
+  /* Tipografia Sections */
+  .section-title { font-size: 3rem; }
+  h2 { font-size: 3rem !important; } /* Força redução de títulos 5rem inline */
+
+  /* Masonry & Glass Cards */
+  .masonry-content { padding: 2rem !important; }
+  .masonry-title { font-size: 1.8rem !important; }
+  .glass-vision { padding: 2rem; }
+  
+  /* Flexbox inline reversions */
+  div[style*="display: flex; gap: 2rem;"] {
+    flex-direction: column; gap: 1rem !important;
+  }
+  div[style*="width: 1px;"] {
+    width: 100% !important; height: 1px !important; margin: 1rem 0;
+  }
+  
+  /* Footer */
+  .footer { padding: 4rem 0 2rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start !important; gap: 1.5rem; text-align: left; }
+  .footer-credits { text-align: left !important; }
+}
+
 /* -----------------------------------------
    4. NAVBAR FLUTUANTE (GOD MODE)
    ----------------------------------------- */
