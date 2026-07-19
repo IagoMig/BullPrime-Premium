@@ -88,17 +88,23 @@ button {
 
 /* 2. Layout */
 .admin-layout {
-    display: grid;
-    grid-template-columns: var(--sidebar-w) 1fr;
+    display: flex;
     min-height: 100vh;
 }
 
 .admin-main {
+    flex: 1;
     padding: 2rem;
     display: flex;
     flex-direction: column;
     gap: 2rem;
     width: 100%;
+    margin-left: var(--sidebar-w);
+    transition: margin-left 0.4s var(--ease-cinematic);
+}
+
+.admin-layout.sidebar-collapsed .admin-main {
+    margin-left: 0;
 }
 
 .admin-topbar {
@@ -107,6 +113,43 @@ button {
     align-items: center;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--admin-border);
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+    position: fixed;
+    top: 1.25rem;
+    left: 1.25rem;
+    z-index: 200;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: var(--admin-card-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--admin-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s var(--ease-spring);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.sidebar-toggle:hover {
+    background: rgba(196, 139, 113, 0.15);
+    border-color: var(--admin-accent);
+    transform: scale(1.05);
+}
+
+.sidebar-toggle svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--admin-accent);
+    transition: transform 0.3s ease;
+}
+
+.admin-layout.sidebar-collapsed .sidebar-toggle svg {
+    transform: rotate(180deg);
 }
 
 /* 3. Sidebar */
@@ -121,10 +164,33 @@ button {
     -webkit-backdrop-filter: blur(20px);
     border-right: 1px solid var(--admin-border);
     padding: 2rem 1.5rem;
+    padding-top: 4.5rem; /* Espaço para o botão toggle */
     display: flex;
     flex-direction: column;
-    gap: 2.5rem;
-    z-index: 100;
+    gap: 2rem;
+    z-index: 150;
+    transition: transform 0.4s var(--ease-cinematic);
+    overflow-y: auto;
+}
+
+.admin-layout.sidebar-collapsed .admin-sidebar {
+    transform: translateX(-100%);
+}
+
+/* Overlay escuro quando sidebar está aberta no mobile */
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 140;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s var(--ease-cinematic);
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: all;
 }
 
 .sidebar-logo {
@@ -684,27 +750,41 @@ input:checked + .switch-slider:before {
 .badge.danger { background: rgba(248, 113, 113, 0.1); color: var(--admin-danger); border: 1px solid rgba(248, 113, 113, 0.2); }
 
 /* 13. Responsive */
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
     .admin-layout {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+    
+    .admin-main {
+        margin-left: 0 !important;
+        padding: 1rem;
+        padding-top: 4.5rem; /* Espaço para o toggle */
     }
     
     .admin-sidebar {
         transform: translateX(-100%);
-        transition: transform 0.4s var(--ease-spring);
     }
     
-    .admin-sidebar.open {
+    .admin-layout:not(.sidebar-collapsed) .admin-sidebar {
         transform: translateX(0);
     }
     
-    .admin-main {
-        padding: 1rem;
+    .admin-layout.sidebar-collapsed .admin-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar-toggle {
+        top: 1rem;
+        left: 1rem;
     }
 
     .builder-layout {
         grid-template-columns: 1fr;
         height: auto;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 }
 
