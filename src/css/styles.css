@@ -325,10 +325,19 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     text-align: left !important;
   }
 
-  /* Editorial Items (Linhas Premium) */
+  /* Editorial Items (Linhas Premium & Masonry Cards) */
+  .editorial-grid { 
+    display: flex !important; 
+    flex-direction: column !important; 
+    gap: 2rem !important; 
+  }
+  .ed-span-4, .ed-span-5, .ed-span-6, .ed-span-7, .ed-span-8, .ed-span-12 {
+    width: 100% !important;
+  }
   .ed-item { 
     aspect-ratio: auto !important; 
     min-height: 350px !important; 
+    width: 100% !important;
   }
 
   /* Flexbox e Grid inline reversions */
@@ -433,6 +442,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .nav-link small { font-size: 0.5rem; text-transform: lowercase; opacity: 0.5; }
+
+/* Hamburger Button for Mobile */
+.hamburger {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+.hamburger:hover {
+  transform: scale(1.1);
+}
+.hamburger svg {
+  stroke: var(--color-accent);
+}
 
 .btn-nav {
   display: inline-flex; align-items: center; justify-content: center;
