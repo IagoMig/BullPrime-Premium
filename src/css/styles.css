@@ -215,48 +215,23 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .section-spacious { padding: 4rem 0; }
   .section-with-bg { padding: 4rem 0; }
 
-  /* Hero Fixes Extremos */
-  .hero-content { 
-    padding-top: 8rem !important; /* Limpa a navbar fixa */
-    padding-bottom: 2rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 100vh;
-  }
-  .hero-eyebrow {
-    font-size: 0.75rem !important;
-    margin-bottom: 1rem !important;
-    display: block;
-  }
-  .hero-title-script { 
-    font-size: 16vw !important; /* Escala fluidamente com a tela */
-    line-height: 1.1 !important;
-    margin-left: 0 !important; 
-    margin-bottom: -1rem !important;
-  }
-  .hero-title-sans { 
-    font-size: 11vw !important; 
-    letter-spacing: 2px !important; 
-  }
-  .hero-description { 
-    font-size: 1rem !important; 
-    padding: 0 !important; 
-    margin-top: 1.5rem !important;
-    margin-bottom: 2.5rem !important;
-  }
-  .hero-seal { display: none !important; } /* Força esconder o selo */
-
   /* Navbar Mobile */
-  .hamburger { display: block; z-index: 1001; }
+  .navbar { padding: 1rem 1.5rem !important; }
+  .navbar-brand img { height: 32px !important; } /* Logo mais delicada no mobile */
+  .hamburger { 
+    display: block; 
+    z-index: 1001; 
+    padding: 0.5rem;
+    margin-right: -0.5rem; /* Ajuste óptico */
+  }
   .nav-links {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(5, 4, 3, 0.95);
-    backdrop-filter: blur(20px);
+    background: rgba(5, 4, 3, 0.98); /* Fundo quase sólido para legibilidade perfeita */
+    backdrop-filter: blur(25px);
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 2rem;
+    gap: 2.5rem; /* Mais espaço para o dedo no touch */
     border-radius: 0;
     border: none;
     opacity: 0;
@@ -267,50 +242,78 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .nav-links.active {
     opacity: 1; pointer-events: all;
   }
-  .nav-link { font-size: 1.2rem; }
-  .nav-reserva { display: none; } /* Pode adicionar o botão no menu mobile se quiser */
+  .nav-link { font-size: 1.5rem !important; font-weight: 300; letter-spacing: 2px; }
+  .nav-reserva { display: none; }
 
-  /* Tipografia Sections */
-  .section-title { font-size: 3rem; }
-  h2 { font-size: 3rem !important; } /* Força redução de títulos 5rem inline */
+  /* Hero Fixes Extremos */
+  .hero-content { 
+    padding-top: 6rem !important; 
+    padding-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .hero-eyebrow {
+    font-size: 0.85rem !important;
+    margin-bottom: 1.5rem !important;
+    display: block;
+    letter-spacing: 0.3em;
+  }
+  .hero-title-script { 
+    font-size: 17vw !important; 
+    line-height: 1 !important;
+    margin-left: 0 !important; 
+    margin-bottom: -0.5rem !important;
+  }
+  .hero-title-sans { 
+    font-size: 11vw !important; 
+    letter-spacing: 2px !important; 
+  }
+  .hero-description { 
+    font-size: 1.1rem !important; 
+    line-height: 1.6 !important;
+    padding: 0 !important; 
+    margin-top: 1.5rem !important;
+    margin-bottom: 2.5rem !important;
+    color: rgba(255,255,255,0.8);
+  }
+  .hero-seal { display: none !important; }
 
-  /* Masonry & Glass Cards */
-  .masonry-content { padding: 2rem !important; }
-  .masonry-title { font-size: 1.8rem !important; }
-  .glass-vision { padding: 2rem; }
-  
-  /* Flexbox e Grid inline reversions for Home Page */
-  div[style*="display: flex; gap: 2rem;"] {
-    flex-direction: column; gap: 1rem !important;
-  }
-  div[style*="grid-template-columns: 1fr 1fr;"] {
-    grid-template-columns: 1fr !important;
-  }
-  div[style*="width: 1px;"] {
-    width: 100% !important; height: 1px !important; margin: 1rem 0;
-  }
-  
-  /* Ajuste de botões na Hero para não quebrarem a tela */
+  /* Ajuste de botões na Hero */
   .hero-buttons {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     width: 100%;
-    padding: 0 1rem;
+    padding: 0;
   }
   .hero-buttons .btn-primary, .hero-buttons .btn-outline {
     width: 100%;
+    text-align: center;
+    padding: 1.2rem 2rem !important; /* Touch targets maiores */
   }
 
-  /* Ajuste de imagens Masonry da Home no mobile */
+  /* Tipografia Sections Mobile */
+  .section-label { font-size: 0.75rem !important; letter-spacing: 0.2em; }
+  .section-title { font-size: 2.5rem !important; line-height: 1.1; }
+  h2 { font-size: 2.5rem !important; }
+  h3 { font-size: 1.8rem !important; }
+
+  /* Masonry & Glass Cards */
+  .masonry-card { min-height: 380px !important; }
+  .masonry-content { padding: 2rem !important; }
+  .glass-vision { padding: 2.5rem 1.5rem !important; text-align: center; }
+  
+  /* Masonry da Home no mobile (Overrides brutos para perfeição visual) */
   .masonry-card .masonry-bg {
     width: 100% !important;
     height: 100% !important;
-    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0.2) 100%) !important;
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0.2) 100%) !important;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%) !important;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%) !important;
   }
   .masonry-card .masonry-overlay {
-    background: linear-gradient(to top, rgba(5,4,3,1) 20%, transparent 100%) !important;
+    background: linear-gradient(to top, rgba(5,4,3,1) 30%, transparent 100%) !important;
   }
   .masonry-card .masonry-content {
     max-width: 100% !important;
@@ -321,15 +324,27 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     top: auto !important;
     text-align: left !important;
   }
-  .masonry-card .masonry-icon {
-    display: flex !important;
-    justify-content: flex-start !important;
+
+  /* Editorial Items (Linhas Premium) */
+  .ed-item { 
+    aspect-ratio: auto !important; 
+    min-height: 350px !important; 
+  }
+
+  /* Flexbox e Grid inline reversions */
+  div[style*="display: flex; gap: 2rem;"] {
+    flex-direction: column; gap: 1.5rem !important;
+  }
+  div[style*="grid-template-columns: 1fr 1fr;"] {
+    grid-template-columns: 1fr !important; gap: 1.5rem !important;
+  }
+  div[style*="width: 1px;"] {
+    width: 100% !important; height: 1px !important; margin: 2rem 0;
   }
 
   /* Diferenciais Grid Mobile */
-  .diferenciais-grid {
-    grid-template-columns: 1fr !important;
-  }
+  .diferenciais-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+  .diff-card { min-height: 320px !important; }
 
   /* Footer */
   .footer { padding: 4rem 0 2rem; }
