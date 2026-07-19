@@ -233,22 +233,28 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     stroke: var(--color-accent) !important;
   }
   .nav-links {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(5, 4, 3, 0.98); /* Fundo quase sólido para legibilidade perfeita */
-    backdrop-filter: blur(25px);
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 2.5rem; /* Mais espaço para o dedo no touch */
-    border-radius: 0;
-    border: none;
+    position: fixed !important; 
+    top: 0 !important; 
+    left: 0 !important; 
+    width: 100vw !important; 
+    height: 100vh !important;
+    background: rgba(5, 4, 3, 0.98) !important; 
+    backdrop-filter: blur(25px) !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 2.5rem !important;
+    border-radius: 0 !important;
+    border: none !important;
     opacity: 0;
     pointer-events: none;
-    transition: all 0.5s var(--ease-cinematic);
-    z-index: 1000;
+    transition: all 0.5s var(--ease-cinematic) !important;
+    z-index: 1000 !important;
+    margin: 0 !important;
   }
   .nav-links.active {
-    opacity: 1; pointer-events: all;
+    opacity: 1 !important; 
+    pointer-events: all !important;
   }
   .nav-link { font-size: 1.5rem !important; font-weight: 300; letter-spacing: 2px; }
   .nav-reserva { display: none; }
