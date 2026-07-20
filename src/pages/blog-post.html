@@ -6,105 +6,882 @@
     <title>Carregando Post... | Bull Prime Journal</title>
     <link rel="icon" type="image/png" href="../../public/logo.png">
     <link rel="stylesheet" href="../css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ========== LOADING STATE ========== */
+        .blog-loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 2rem;
+        }
+
+        .blog-loading-glass {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            padding: 3.5rem 4rem;
+            background: rgba(12, 10, 8, 0.55);
+            backdrop-filter: blur(24px) saturate(130%);
+            -webkit-backdrop-filter: blur(24px) saturate(130%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            box-shadow:
+                0 40px 80px rgba(0, 0, 0, 0.7),
+                inset 0 1px 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .blog-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(196, 139, 113, 0.15);
+            border-top-color: var(--color-accent, #c48b71);
+            border-radius: 50%;
+            animation: blogSpin 0.8s linear infinite;
+        }
+
+        @keyframes blogSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .blog-loading-text {
+            font-family: 'Lato', sans-serif;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.04em;
+        }
+
+        .blog-shimmer {
+            width: 100%;
+            max-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .blog-shimmer-line {
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.03) 25%,
+                rgba(255, 255, 255, 0.08) 50%,
+                rgba(255, 255, 255, 0.03) 75%
+            );
+            background-size: 200% 100%;
+            animation: blogShimmer 1.5s ease-in-out infinite;
+        }
+
+        .blog-shimmer-line:nth-child(1) { width: 100%; }
+        .blog-shimmer-line:nth-child(2) { width: 85%; }
+        .blog-shimmer-line:nth-child(3) { width: 70%; }
+
+        @keyframes blogShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ========== ERROR / NOT FOUND STATE ========== */
+        .blog-error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 2rem;
+        }
+
+        .blog-error-glass {
+            text-align: center;
+            padding: 4rem 3.5rem;
+            max-width: 520px;
+            background: rgba(12, 10, 8, 0.55);
+            backdrop-filter: blur(24px) saturate(130%);
+            -webkit-backdrop-filter: blur(24px) saturate(130%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            box-shadow:
+                0 40px 80px rgba(0, 0, 0, 0.7),
+                inset 0 1px 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .blog-error-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.6;
+        }
+
+        .blog-error-title {
+            font-family: 'Restweek', cursive;
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .blog-error-text {
+            font-family: 'Lato', sans-serif;
+            font-size: 1.05rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .blog-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 2rem;
+            background: var(--color-accent, #c48b71);
+            color: #0a0806;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            border: none;
+            border-radius: 50px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .blog-back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(196, 139, 113, 0.35);
+        }
+
+        /* ========== HERO SECTION ========== */
+        .blog-hero {
+            position: relative;
+            min-height: 65vh;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .blog-hero-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transform: scale(1.02);
+            transition: transform 8s ease-out;
+        }
+
+        .blog-hero.loaded .blog-hero-bg {
+            transform: scale(1);
+        }
+
+        .blog-hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(5, 4, 3, 0.25) 0%,
+                rgba(5, 4, 3, 0.45) 40%,
+                rgba(5, 4, 3, 0.85) 75%,
+                rgba(5, 4, 3, 1) 100%
+            );
+            z-index: 1;
+        }
+
+        .blog-hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 860px;
+            width: 100%;
+            padding: 4rem 2rem 5rem;
+            text-align: center;
+        }
+
+        .blog-hero-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .blog-hero-tag {
+            display: inline-block;
+            padding: 0.3rem 0.9rem;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--color-accent, #c48b71);
+            background: rgba(196, 139, 113, 0.1);
+            border: 1px solid rgba(196, 139, 113, 0.25);
+            border-radius: 50px;
+        }
+
+        .blog-hero-title {
+            font-family: 'Restweek', cursive;
+            font-size: 3.5rem;
+            font-weight: 400;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .blog-hero-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            font-family: 'Lato', sans-serif;
+            font-size: 0.92rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .blog-hero-meta-divider {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .blog-hero-author {
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+        }
+
+        /* ========== GLASSMORPHISM ARTICLE ========== */
+        .blog-article-glass {
+            position: relative;
+            max-width: 800px;
+            margin: -6rem auto 0;
+            padding: 4rem 3.5rem;
+            background: rgba(12, 10, 8, 0.55);
+            backdrop-filter: blur(24px) saturate(130%);
+            -webkit-backdrop-filter: blur(24px) saturate(130%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            box-shadow:
+                0 40px 80px rgba(0, 0, 0, 0.7),
+                inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            z-index: 10;
+        }
+
+        .blog-article-glass p {
+            font-family: 'Lato', sans-serif;
+            font-size: 1.15rem;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.82);
+            margin-bottom: 1.5rem;
+        }
+
+        .blog-article-glass h2 {
+            font-family: 'Restweek', cursive;
+            font-size: 2.5rem;
+            color: #fff;
+            margin: 3rem 0 1.5rem;
+        }
+
+        .blog-article-glass h3 {
+            font-family: 'Lato', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 2rem 0 1rem;
+        }
+
+        .blog-article-glass img {
+            width: 100%;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .blog-article-glass blockquote {
+            border-left: 3px solid var(--color-accent, #c48b71);
+            padding: 1rem 2rem;
+            margin: 2rem 0;
+            background: rgba(196, 139, 113, 0.05);
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .blog-article-glass a {
+            color: var(--color-accent, #c48b71);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(196, 139, 113, 0.3);
+            transition: border-color 0.3s ease;
+        }
+
+        .blog-article-glass a:hover {
+            border-bottom-color: var(--color-accent, #c48b71);
+        }
+
+        .blog-article-glass ul, .blog-article-glass ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .blog-article-glass li {
+            margin-bottom: 0.5rem;
+            line-height: 1.8;
+        }
+
+        .blog-article-glass pre {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+            font-size: 0.92rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.78);
+        }
+
+        .blog-article-glass code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.88em;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 0.15em 0.4em;
+            border-radius: 4px;
+            color: var(--color-accent, #c48b71);
+        }
+
+        .blog-article-glass pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .blog-article-glass hr {
+            border: none;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            margin: 3rem 0;
+        }
+
+        /* ========== AUTHOR SECTION (inside glass) ========== */
+        .blog-author-section {
+            margin-top: 3rem;
+            padding-top: 2.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .blog-author-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .blog-author-label {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        .blog-author-name {
+            font-family: 'Restweek', cursive;
+            font-size: 1.3rem;
+            color: #fff;
+        }
+
+        .blog-author-date {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 0.15rem;
+        }
+
+        .blog-back-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.8rem;
+            background: rgba(196, 139, 113, 0.12);
+            color: var(--color-accent, #c48b71);
+            font-family: 'Lato', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            border: 1px solid rgba(196, 139, 113, 0.25);
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .blog-back-pill:hover {
+            background: var(--color-accent, #c48b71);
+            color: #0a0806;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(196, 139, 113, 0.3);
+        }
+
+        .blog-back-pill svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .blog-back-pill:hover svg {
+            transform: translateX(-3px);
+        }
+
+        /* ========== RELATED POSTS ========== */
+        .blog-related-section {
+            max-width: 1100px;
+            margin: 5rem auto;
+            padding: 0 2rem;
+        }
+
+        .blog-related-title {
+            font-family: 'Restweek', cursive;
+            font-size: 2.2rem;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .blog-related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .blog-related-card {
+            background: var(--glass-bg, rgba(15, 12, 10, 0.4));
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+            border-radius: 16px;
+            overflow: hidden;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+
+        .blog-related-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border-color: rgba(196, 139, 113, 0.2);
+        }
+
+        .blog-related-card-img {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            overflow: hidden;
+        }
+
+        .blog-related-card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .blog-related-card:hover .blog-related-card-img img {
+            transform: scale(1.08);
+        }
+
+        .blog-related-card-body {
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blog-related-card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .blog-related-card-tag {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-accent, #c48b71);
+            background: rgba(196, 139, 113, 0.08);
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+        }
+
+        .blog-related-card-title {
+            font-family: 'Restweek', cursive;
+            font-size: 1.35rem;
+            color: #fff;
+            line-height: 1.25;
+            margin-bottom: 0.6rem;
+        }
+
+        .blog-related-card-excerpt {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.6;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .blog-related-card-date {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* ========== FADE-IN ANIMATIONS ========== */
+        .blog-fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: blogFadeIn 0.8s ease forwards;
+        }
+
+        .blog-fade-in-delay-1 { animation-delay: 0.15s; }
+        .blog-fade-in-delay-2 { animation-delay: 0.3s; }
+        .blog-fade-in-delay-3 { animation-delay: 0.45s; }
+
+        @keyframes blogFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .blog-related-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .blog-hero {
+                min-height: 50vh;
+            }
+
+            .blog-hero-title {
+                font-size: 2.2rem;
+            }
+
+            .blog-hero-content {
+                padding: 3rem 1.5rem 4rem;
+            }
+
+            .blog-hero-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .blog-hero-meta-divider {
+                display: none;
+            }
+
+            .blog-article-glass {
+                margin: -3rem 1rem 0;
+                padding: 2rem 1.5rem;
+            }
+
+            .blog-article-glass h2 {
+                font-size: 1.8rem;
+            }
+
+            .blog-article-glass h3 {
+                font-size: 1.2rem;
+            }
+
+            .blog-article-glass p {
+                font-size: 1.05rem;
+                line-height: 1.8;
+            }
+
+            .blog-author-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .blog-related-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .blog-related-title {
+                font-size: 1.8rem;
+            }
+
+            .blog-related-section {
+                margin: 3rem auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .blog-hero {
+                min-height: 45vh;
+            }
+
+            .blog-hero-title {
+                font-size: 1.8rem;
+            }
+
+            .blog-article-glass {
+                margin: -2rem 0.5rem 0;
+                padding: 1.5rem 1.2rem;
+                border-radius: 14px;
+            }
+
+            .blog-loading-glass {
+                padding: 2.5rem 2rem;
+            }
+
+            .blog-error-glass {
+                padding: 2.5rem 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body class="dark-theme">
     <div id="header"></div>
-    
-    <div id="dynamic-content">
-        <div class="container section-spacious text-center" style="padding-top: 15rem; min-height: 70vh;">
-            <div class="spinner" style="margin: 0 auto 2rem; width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--color-accent); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-            <p>Carregando artigo...</p>
+
+    <div id="blog-post-content">
+        <!-- Loading State -->
+        <div class="blog-loading-container">
+            <div class="blog-loading-glass">
+                <div class="blog-spinner"></div>
+                <div class="blog-shimmer">
+                    <div class="blog-shimmer-line"></div>
+                    <div class="blog-shimmer-line"></div>
+                    <div class="blog-shimmer-line"></div>
+                </div>
+                <p class="blog-loading-text">Carregando artigo...</p>
+            </div>
         </div>
     </div>
-    
+
     <div id="footer"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
     <script src="../components/header.js"></script>
     <script src="../components/footer.js"></script>
+    <script src="../js/animations.js"></script>
+
     <script>
-        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
-        let supabase; try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); else alert("Erro de conexão"); } catch(e) {}
+        (async function() {
+            const container = document.getElementById('blog-post-content');
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const slug = urlParams.get('slug');
-
-        async function init() {
-            if (!slug) {
-                document.getElementById('dynamic-content').innerHTML = `
-                    <div class="container section-spacious text-center" style="padding-top: 15rem;">
-                        <h2>Post não encontrado</h2>
-                        <a href="blog.html" class="btn-primary mt-4" style="display:inline-block;">Voltar ao Blog</a>
-                    </div>
-                `;
-                return;
+            function formatDate(dateStr) {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                });
             }
 
-            try {
-                // Load Blog Post
-                const { data: post, error } = await supabase
-                    .from('blog_posts')
-                    .select('*')
-                    .eq('slug', slug)
-                    .single();
+            function showError(title, message) {
+                container.innerHTML = `
+                    <div class="blog-error-container">
+                        <div class="blog-error-glass blog-fade-in">
+                            <div class="blog-error-icon">📄</div>
+                            <h1 class="blog-error-title">${title}</h1>
+                            <p class="blog-error-text">${message}</p>
+                            <a href="blog.html" class="blog-back-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                Voltar ao Blog
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
 
-                if (error || !post) throw error || new Error("Post não encontrado");
+            async function loadRelatedPosts(currentPost) {
+                const db = window.BullPrimeDB ? window.BullPrimeDB.client : null;
+                if (!db || !currentPost.tags || currentPost.tags.length === 0) return [];
+
+                try {
+                    const { data } = await db
+                        .from('blog_posts')
+                        .select('*')
+                        .eq('status', 'published')
+                        .neq('id', currentPost.id)
+                        .order('created_at', { ascending: false })
+                        .limit(3);
+
+                    return data || [];
+                } catch (e) {
+                    console.error('Error loading related posts:', e);
+                    return [];
+                }
+            }
+
+            function renderRelatedPosts(posts) {
+                if (!posts || posts.length === 0) return '';
+
+                const cards = posts.map((p, i) => {
+                    const tagsHtml = (p.tags || []).slice(0, 2).map(t =>
+                        `<span class="blog-related-card-tag">${t}</span>`
+                    ).join('');
+
+                    const coverImg = p.cover_image
+                        ? `<div class="blog-related-card-img"><img src="${p.cover_image}" alt="${p.title}" loading="lazy"></div>`
+                        : '';
+
+                    return `
+                        <a href="blog-post.html?slug=${encodeURIComponent(p.slug)}" class="blog-related-card blog-fade-in blog-fade-in-delay-${i + 1}">
+                            ${coverImg}
+                            <div class="blog-related-card-body">
+                                <div class="blog-related-card-tags">${tagsHtml}</div>
+                                <h3 class="blog-related-card-title">${p.title}</h3>
+                                <p class="blog-related-card-excerpt">${p.excerpt || ''}</p>
+                                <span class="blog-related-card-date">${formatDate(p.created_at)}</span>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+
+                return `
+                    <section class="blog-related-section blog-fade-in">
+                        <h2 class="blog-related-title">Leia Também</h2>
+                        <div class="blog-related-grid">
+                            ${cards}
+                        </div>
+                    </section>
+                `;
+            }
+
+            function renderPost(post) {
+                const tagsHtml = (post.tags || []).map(t =>
+                    `<span class="blog-hero-tag">${t}</span>`
+                ).join('');
+
+                const heroStyle = post.cover_image
+                    ? `background-image: url('${post.cover_image}');`
+                    : `background: linear-gradient(135deg, #0a0806 0%, #1a1510 50%, #0a0806 100%);`;
+
+                container.innerHTML = `
+                    <section class="blog-hero" id="blog-hero">
+                        <div class="blog-hero-bg" style="${heroStyle}"></div>
+                        <div class="blog-hero-overlay"></div>
+                        <div class="blog-hero-content blog-fade-in">
+                            <div class="blog-hero-tags">${tagsHtml}</div>
+                            <h1 class="blog-hero-title">${post.title}</h1>
+                            <div class="blog-hero-meta">
+                                <span class="blog-hero-author">${post.author || 'Bull Prime'}</span>
+                                <span class="blog-hero-meta-divider"></span>
+                                <span>${formatDate(post.created_at)}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <article class="blog-article-glass blog-fade-in blog-fade-in-delay-1">
+                        <div class="blog-article-body">
+                            ${post.content || ''}
+                        </div>
+
+                        <div class="blog-author-section">
+                            <div class="blog-author-info">
+                                <span class="blog-author-label">Escrito por</span>
+                                <span class="blog-author-name">${post.author || 'Bull Prime'}</span>
+                                <span class="blog-author-date">${formatDate(post.created_at)}</span>
+                            </div>
+                            <a href="blog.html" class="blog-back-pill">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                Voltar ao Blog
+                            </a>
+                        </div>
+                    </article>
+
+                    <div id="blog-related-container"></div>
+                `;
+
+                // Trigger hero zoom animation
+                requestAnimationFrame(() => {
+                    const hero = document.getElementById('blog-hero');
+                    if (hero) hero.classList.add('loaded');
+                });
 
                 // Update meta
                 document.title = `${post.title} | Bull Prime Journal`;
-                if(post.excerpt) {
-                    const metaDesc = document.createElement('meta');
-                    metaDesc.name = "description";
-                    metaDesc.content = post.excerpt;
-                    document.head.appendChild(metaDesc);
+                if (post.excerpt) {
+                    const meta = document.createElement('meta');
+                    meta.name = 'description';
+                    meta.content = post.excerpt;
+                    document.head.appendChild(meta);
+                }
+
+                return post;
+            }
+
+            // ===== MAIN EXECUTION =====
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const slug = urlParams.get('slug');
+
+                if (!slug) {
+                    showError('Post Não Encontrado', 'Nenhum artigo foi especificado. Volte ao blog para explorar nossos conteúdos.');
+                    return;
+                }
+
+                // Wait for BullPrimeDB to be ready
+                let attempts = 0;
+                while ((!window.BullPrimeDB || !window.BullPrimeDB.client) && attempts < 30) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+
+                const db = window.BullPrimeDB ? window.BullPrimeDB.client : null;
+
+                if (!db) {
+                    showError('Erro de Conexão', 'Não foi possível conectar ao servidor. Tente novamente mais tarde.');
+                    return;
+                }
+
+                const { data: post, error } = await db
+                    .from('blog_posts')
+                    .select('*')
+                    .eq('slug', slug)
+                    .eq('status', 'published')
+                    .single();
+
+                if (error || !post) {
+                    showError('Post Não Encontrado', 'O artigo que você procura não existe ou não está disponível no momento.');
+                    return;
                 }
 
                 renderPost(post);
-            } catch (error) {
-                console.error(error);
-                document.getElementById('dynamic-content').innerHTML = `
-                    <div class="container section-spacious text-center" style="padding-top: 15rem;">
-                        <h2>Erro ao carregar o post</h2>
-                        <p class="text-muted mt-2">${error.message}</p>
-                        <a href="blog.html" class="btn-primary mt-4" style="display:inline-block;">Voltar ao Blog</a>
-                    </div>
-                `;
+
+                // Load related posts
+                const relatedPosts = await loadRelatedPosts(post);
+                const relatedContainer = document.getElementById('blog-related-container');
+                if (relatedContainer && relatedPosts.length > 0) {
+                    relatedContainer.innerHTML = renderRelatedPosts(relatedPosts);
+                }
+
+            } catch (err) {
+                console.error('Blog post error:', err);
+                showError('Erro Inesperado', 'Algo deu errado ao carregar o artigo. Por favor, tente novamente.');
             }
-        }
-
-        function renderPost(post) {
-            const container = document.getElementById('dynamic-content');
-            
-            const dateStr = new Date(post.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
-            const coverImage = post.cover_image || '../../public/08.diadia.jpg';
-
-            let html = `
-                <div class="hero-wrapper">
-                    <section class="hero" style="min-height: 60vh;">
-                        <div class="hero-bg" style="background-image: url('${coverImage}');"></div>
-                        <div class="hero-overlay-deep"></div>
-                        <div class="container hero-content text-center" style="padding-top: 10rem;">
-                            <span class="hero-eyebrow" style="color: var(--color-accent);">${dateStr} &bull; Por ${post.author || 'Bull Prime'}</span>
-                            <h1 class="hero-title-sans" style="font-size: 3.5rem; margin-top: 1rem;">${post.title}</h1>
-                        </div>
-                    </section>
-                </div>
-                
-                <main class="main-content" style="background: var(--color-void);">
-                    <section class="section-with-bg" style="padding: 4rem 0;">
-                        <div class="container" style="max-width: 800px; margin: 0 auto; color: rgba(255,255,255,0.85); font-size: 1.15rem; line-height: 1.8;">
-                            ${post.content || ''}
-                        </div>
-                    </section>
-                </main>
-            `;
-
-            container.innerHTML = html;
-        }
-
-        document.addEventListener('DOMContentLoaded', init);
+        })();
     </script>
 </body>
 </html>

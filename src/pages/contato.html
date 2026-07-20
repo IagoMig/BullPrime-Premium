@@ -160,14 +160,11 @@
                         };
                         
                         if (typeof BullPrimeDB !== 'undefined' && BullPrimeDB.submitContact) {
-                            const result = await BullPrimeDB.submitContact(formData);
-                            if (result && !result.error) {
-                                msgDiv.innerHTML = "Mensagem enviada com sucesso!";
-                                msgDiv.style.color = "#25D366";
-                                form.reset();
-                            } else {
-                                throw new Error("Erro no banco");
-                            }
+                            await BullPrimeDB.submitContact(formData);
+                            // Se não caiu no catch, foi sucesso absoluto
+                            msgDiv.innerHTML = "Mensagem enviada com sucesso!";
+                            msgDiv.style.color = "#25D366";
+                            form.reset();
                         } else {
                             msgDiv.innerHTML = "Erro ao enviar: Sistema indisponível.";
                             msgDiv.style.color = "#f44336";

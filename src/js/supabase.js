@@ -9,18 +9,18 @@ const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
 
 // Inicializa o cliente Supabase via CDN global
-let supabase = null;
+let supabaseClient = null;
 
 function initSupabase() {
-    if (supabase) return supabase;
+    if (supabaseClient) return supabaseClient;
 
     if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     } else {
         console.warn('[BullPrime] Supabase CDN não carregado. Operações de banco indisponíveis.');
         return null;
     }
-    return supabase;
+    return supabaseClient;
 }
 
 const BullPrimeDB = {

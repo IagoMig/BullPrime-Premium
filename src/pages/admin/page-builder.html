@@ -3,508 +3,620 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Builder | Bull Prime Premium</title>
+    <title>Page Builder PRO | Bull Prime Premium</title>
     <link rel="stylesheet" href="../../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
+    <!-- GrapesJS Engine -->
+    <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/grapesjs"></script>
+
     <style>
-        .builder-layout {
-            display: grid;
-            grid-template-columns: 250px 1fr 300px;
-            gap: 1.5rem;
-            height: calc(100vh - 120px);
-            align-items: stretch;
-        }
-        .builder-sidebar {
-            background: var(--admin-card-bg);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--admin-border);
-            padding: 1.5rem;
-            overflow-y: auto;
-        }
-        .builder-canvas {
-            background: var(--admin-bg);
-            border-radius: var(--radius-lg);
-            border: 1px dashed var(--admin-border);
-            overflow-y: auto;
-            padding: 2rem;
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; transition: background 0.2s; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0a0a0a; color: #fff; font-family: 'Inter', sans-serif; }
+
+        /* App Layout */
+        .app-layout {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            position: relative;
+            height: 100vh;
         }
-        .builder-config {
-            background: var(--admin-card-bg);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--admin-border);
-            padding: 1.5rem;
-            overflow-y: auto;
-        }
-        .section-type-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--admin-border);
-            padding: 1rem;
-            border-radius: var(--radius-sm);
-            margin-bottom: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .section-type-card:hover {
-            border-color: var(--admin-accent);
-            background: rgba(196, 139, 113, 0.05);
-        }
-        .canvas-section {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--admin-border);
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius-sm);
+
+        /* Topbar */
+        .builder-topbar {
+            height: 60px;
+            background: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.2s;
+            padding: 0 24px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+            z-index: 100;
         }
-        .canvas-section:hover, .canvas-section.active {
-            border-color: var(--admin-accent);
+        
+        .builder-topbar .left-actions { display: flex; align-items: center; gap: 16px; }
+        .builder-topbar h2 { margin: 0; font-size: 1.1rem; font-weight: 600; color: #fff; }
+
+        .device-switcher {
+            display: flex; gap: 8px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);
         }
-        .canvas-section.active {
-            background: rgba(196, 139, 113, 0.1);
+        .device-btn {
+            background: transparent; border: none; color: rgba(255,255,255,0.4); padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
         }
-        .canvas-actions {
+        .device-btn.active, .device-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+        /* Workspace */
+        .builder-workspace {
             display: flex;
-            gap: 0.5rem;
+            flex: 1;
+            height: calc(100vh - 60px);
         }
-        .config-group {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--admin-border);
+
+        /* Glass Panels */
+        .panel {
+            width: 300px;
+            background: rgba(18, 18, 18, 0.55);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            border-left: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: inset 0 1px rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
         }
-        .item-list-row {
-            background: rgba(0,0,0,0.2);
-            padding: 1rem;
-            border-radius: var(--radius-sm);
-            margin-bottom: 1rem;
+        .panel-left { border-left: none; }
+        .panel-right { border-right: none; width: 340px; }
+
+        /* Canvas Wrapper */
+        .canvas-wrapper {
+            flex: 1;
             position: relative;
+            background: radial-gradient(circle at 50% 0%, rgba(255, 165, 100, 0.03) 0%, transparent 70%), rgba(10, 10, 10, 0.8);
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center top;
+            padding: 24px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .remove-item-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            color: var(--admin-danger);
+
+        /* Editor Overrides */
+        .gjs-editor { background: transparent !important; }
+        .gjs-cv-canvas {
+            background: transparent;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .handle {
-            cursor: grab;
-            color: var(--admin-text-muted);
-            margin-right: 0.5rem;
+
+        /* Panel Headers / Tabs */
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
+        .panel-tab {
+            flex: 1; text-align: center; padding: 12px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;
+        }
+        .panel-tab.active { color: #ffa564; border-bottom: 2px solid #ffa564; background: rgba(255,255,255,0.02); }
+        .panel-tab:hover { color: #fff; }
+
+        .panel-content { flex: 1; overflow-y: auto; padding: 16px; display: none; }
+        .panel-content.active { display: block; }
+
+        /* GrapesJS UI Overrides */
+        .gjs-pn-panel { background: transparent !important; box-shadow: none !important; }
+        .gjs-block { 
+            width: 100% !important; min-height: auto !important; padding: 12px !important; 
+            background: rgba(255,255,255,0.03) !important; border: 1px solid rgba(255,255,255,0.05) !important;
+            border-radius: 12px !important; margin-bottom: 12px !important; color: #fff !important;
+            transition: all 0.2s !important; display: flex !important; align-items: center !important; gap: 12px !important;
+            text-align: left !important;
+        }
+        .gjs-block:hover { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,165,100,0.4) !important; transform: translateY(-2px); }
+        .gjs-block-label { font-size: 0.9rem !important; margin:0 !important; font-weight: 500 !important; }
+        .gjs-block svg { width: 24px !important; height: 24px !important; fill: rgba(255,165,100,0.8) !important; }
+
+        /* Styling the Style Manager */
+        .gjs-sm-sector { border-top: 1px solid rgba(255,255,255,0.06) !important; }
+        .gjs-sm-sector-title { background: rgba(0,0,0,0.2) !important; padding: 12px 16px !important; color: #fff !important; font-weight: 600 !important; letter-spacing: 1px !important; }
+        .gjs-sm-property { margin-bottom: 12px !important; }
+        .gjs-sm-label { color: rgba(255,255,255,0.6) !important; font-size: 0.8rem !important; text-transform: uppercase !important; }
+        .gjs-field { background: rgba(0,0,0,0.4) !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important; color: #fff !important; padding: 4px 8px !important; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important; }
+        .gjs-field input, .gjs-field select { color: #fff !important; font-size: 0.9rem !important; }
+        .gjs-sm-color-p { border-radius: 50% !important; border: 2px solid rgba(255,255,255,0.2) !important; }
+
+        /* Layer Manager */
+        .gjs-layer-title { color: rgba(255,255,255,0.8) !important; }
+        .gjs-layer-active { background-color: rgba(255,165,100,0.1) !important; color: #ffa564 !important; border-radius: 6px !important; }
+
+        /* Premium Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(255, 165, 100, 0.9), rgba(214, 115, 60, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 15px rgba(255, 165, 100, 0.2), inset 0 1px rgba(255, 255, 255, 0.2);
+            color: #fff; font-weight: 600; padding: 8px 16px; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255, 165, 100, 0.3); background: linear-gradient(135deg, rgba(255, 175, 115, 1), rgba(224, 125, 70, 1)); }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; padding: 8px 16px; border-radius: 10px; cursor: pointer; transition: all 0.2s; text-decoration: none; display:inline-block; font-size: 14px;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
     </style>
 </head>
 <body>
-    <div class="admin-layout" style="grid-template-columns: 1fr; padding: 1rem;">
+    <div class="app-layout">
         
-        <header class="admin-topbar mb-3">
-            <div>
-                <a href="pages.html" class="btn btn-secondary btn-sm mb-1"><i class="fas fa-arrow-left"></i> Voltar</a>
+        <!-- Topbar -->
+        <header class="builder-topbar">
+            <div class="left-actions">
+                <a href="pages.html" class="btn-secondary"><i class="fas fa-arrow-left"></i> Sair</a>
                 <h2 id="page-title-display">Carregando...</h2>
             </div>
-            <div>
-                <button class="btn btn-primary" onclick="savePageConfig()">
-                    <i class="fas fa-save"></i> Salvar Tudo
-                </button>
+            
+            <div class="device-switcher">
+                <button class="device-btn active" onclick="setDevice('Desktop')" title="Desktop"><i class="fas fa-desktop"></i></button>
+                <button class="device-btn" onclick="setDevice('Tablet')" title="Tablet"><i class="fas fa-tablet-alt"></i></button>
+                <button class="device-btn" onclick="setDevice('Mobile')" title="Mobile"><i class="fas fa-mobile-alt"></i></button>
+            </div>
+
+            <div class="right-actions" style="display:flex; gap:12px;">
+                <button class="btn-secondary" onclick="editor.runCommand('core:undo')" title="Desfazer (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+                <button class="btn-secondary" onclick="editor.runCommand('core:redo')" title="Refazer (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+                <button class="btn-primary" onclick="savePageData()"><i class="fas fa-save"></i> Salvar (Ctrl+S)</button>
             </div>
         </header>
 
-        <div class="builder-layout">
+        <div class="builder-workspace">
             <!-- Left Sidebar -->
-            <div class="builder-sidebar">
-                <h3 class="mb-3 text-sm text-muted">SEÇÕES DISPONÍVEIS</h3>
-                <div id="available-sections">
-                    <!-- Loaded via JS -->
+            <aside class="panel panel-left">
+                <div class="panel-tabs">
+                    <div class="panel-tab active" onclick="switchTab('left', 'blocks', this)">Elementos</div>
+                    <div class="panel-tab" onclick="switchTab('left', 'layers', this)">Camadas</div>
                 </div>
-            </div>
+                <div id="tab-blocks" class="panel-content active">
+                    <!-- GrapesJS Blocks will render here -->
+                    <div id="blocks"></div>
+                </div>
+                <div id="tab-layers" class="panel-content">
+                    <!-- GrapesJS Layer Manager -->
+                    <div id="layers-container"></div>
+                </div>
+            </aside>
 
             <!-- Center Canvas -->
-            <div class="builder-canvas" id="canvas-area">
-                <!-- Loaded via JS -->
-                <div id="empty-canvas" class="empty-state" style="display:none;">
-                    <i class="fas fa-layer-group"></i>
-                    <h3>Nenhuma seção adicionada</h3>
-                    <p>Clique em uma seção à esquerda para adicionar.</p>
-                </div>
-            </div>
+            <main class="canvas-wrapper">
+                <div id="gjs"></div>
+            </main>
 
-            <!-- Right Sidebar Config -->
-            <div class="builder-config">
-                <h3 class="mb-3 text-sm text-muted">CONFIGURAÇÃO</h3>
-                <div id="config-panel">
-                    <p class="text-muted text-sm text-center mt-4">Selecione uma seção no centro para configurá-la.</p>
+            <!-- Right Sidebar -->
+            <aside class="panel panel-right">
+                <div class="panel-tabs">
+                    <div class="panel-tab active" onclick="switchTab('right', 'styles', this)">Design</div>
+                    <div class="panel-tab" onclick="switchTab('right', 'traits', this)">Configurações</div>
                 </div>
-            </div>
+                <div id="tab-styles" class="panel-content active">
+                    <div id="styles-container"></div>
+                </div>
+                <div id="tab-traits" class="panel-content">
+                    <div id="traits-container"></div>
+                </div>
+            </aside>
         </div>
     </div>
 
-    <div id="toast-container" class="toast-container"></div>
+    <!-- Toast Notification -->
+    <div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:9999;"></div>
 
+    <script src="../../js/supabase.js"></script>
     <script>
-        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
-        let supabase; try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); else alert("Erro de conexão ao carregar o sistema."); } catch(e) { console.error(e); }
-
-        async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                window.location.href = 'login.html';
-            }
-        }
-        checkAuth();
-        
-
+        let editor;
+        let pagesDbClient;
         const urlParams = new URLSearchParams(window.location.search);
         const pageId = urlParams.get('id');
 
-        let sections = [];
-        let activeSectionId = null;
-
-        const SECTION_TYPES = {
-            'hero': { name: 'Hero Banner', icon: 'fa-image', hasItems: false },
-            'masonry': { name: 'Grid Masonry', icon: 'fa-th-large', hasItems: true },
-            'text_image': { name: 'Texto + Imagem', icon: 'fa-columns', hasItems: false },
-            'gallery': { name: 'Galeria', icon: 'fa-images', hasItems: true },
-            'cta': { name: 'Call to Action', icon: 'fa-bullhorn', hasItems: false },
-            'text_block': { name: 'Bloco de Texto', icon: 'fa-align-left', hasItems: false },
-            'features': { name: 'Diferenciais', icon: 'fa-star', hasItems: true },
-            'glass_card': { name: 'Card Glass', icon: 'fa-square', hasItems: false }
-        };
-
-        function showToast(message, type = 'success') {
+        function showToast(msg, type='success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> <span>${message}</span>`;
+            toast.style = `background: ${type==='success'?'#2e7d32':'#d32f2f'}; color:white; padding:12px 24px; border-radius:8px; margin-top:10px; box-shadow:0 10px 30px rgba(0,0,0,0.3); font-weight:500; animation:slideIn 0.3s ease;`;
+            toast.innerHTML = msg;
             container.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.add('hiding');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=>toast.remove(), 300); }, 3000);
         }
 
-        async function init() {
-            if (!pageId) {
-                alert('ID da página não fornecido');
-                window.location.href = 'pages.html';
-                return;
+        function switchTab(side, tabId, element) {
+            document.querySelectorAll(`.panel-${side} .panel-tab`).forEach(el => el.classList.remove('active'));
+            document.querySelectorAll(`.panel-${side} .panel-content`).forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+
+        async function initApp() {
+            try {
+                let attempts = 0;
+            while ((!window.BullPrimeDB || !window.BullPrimeDB.client) && attempts < 30) {
+                await new Promise(r => setTimeout(r, 100)); attempts++;
             }
-
-            // Render available sections
-            const availableDiv = document.getElementById('available-sections');
-            Object.entries(SECTION_TYPES).forEach(([type, info]) => {
-                const el = document.createElement('div');
-                el.className = 'section-type-card';
-                el.innerHTML = `<i class="fas ${info.icon} text-accent w-6"></i> <span>${info.name}</span>`;
-                el.onclick = () => addSection(type);
-                availableDiv.appendChild(el);
-            });
-
-            // Make canvas sortable
-            new Sortable(document.getElementById('canvas-area'), {
-                handle: '.handle',
-                animation: 150,
-                onEnd: () => {
-                    // Update array order based on DOM
-                    const newOrderIds = Array.from(document.querySelectorAll('.canvas-section')).map(el => el.dataset.id);
-                    sections = newOrderIds.map(id => sections.find(s => s.id === id));
+            pagesDbClient = window.BullPrimeDB.client;
+            
+            if(!pageId) { alert("ID não fornecido"); window.location.href="pages.html"; return; }
+            
+            // Init GrapesJS
+            editor = grapesjs.init({
+                container: '#gjs',
+                height: '100%',
+                width: '100%',
+                fromElement: true,
+                storageManager: false, // We will handle saving manually via Supabase
+                panels: { defaults: [] }, // Disable default panels
+                blockManager: {
+                    appendTo: '#blocks',
+                },
+                layerManager: {
+                    appendTo: '#layers-container'
+                },
+                styleManager: {
+                    appendTo: '#styles-container',
+                    sectors: [
+                        { name: 'Dimensões', open: false, buildProps: ['width', 'height', 'max-width', 'min-height', 'margin', 'padding'] },
+                        { 
+                            name: 'Tipografia', 
+                            open: false, 
+                            buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'color', 'line-height', 'text-align', 'text-shadow'],
+                            properties: [
+                                {
+                                    property: 'font-family',
+                                    list: [
+                                        { value: '"Restweek", serif', name: 'Restweek (Premium)' },
+                                        { value: '"Lato", sans-serif', name: 'Lato' }
+                                    ]
+                                }
+                            ]
+                        },
+                        { name: 'Posicionamento (Flex)', open: false, buildProps: ['display', 'flex-direction', 'justify-content', 'align-items', 'flex-wrap', 'position', 'top', 'right', 'bottom', 'left', 'z-index'] },
+                        { name: 'Decoração', open: false, buildProps: ['background-color', 'background-image', 'border-radius', 'border', 'box-shadow', 'opacity'] },
+                        { name: 'Efeitos Premium', open: false, properties: [
+                            { name: 'Glass Blur', property: 'backdrop-filter', type: 'text', default: 'blur(10px)' },
+                            { name: 'Transição', property: 'transition', type: 'text', default: 'all 0.3s ease' }
+                        ]}
+                    ]
+                },
+                traitManager: {
+                    appendTo: '#traits-container',
+                },
+                deviceManager: {
+                    devices: [
+                        { name: 'Desktop', width: '' },
+                        { name: 'Tablet', width: '768px', widthMedia: '992px' },
+                        { name: 'Mobile', width: '375px', widthMedia: '480px' }
+                    ]
+                },
+                canvas: {
+                    styles: [
+                        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+                        '../../css/styles.css' // Inject project styles inside canvas
+                    ],
                 }
             });
 
+            // Register Custom Blocks
+            const bm = editor.BlockManager;
+            
+            bm.add('hero-section', {
+                label: 'Hero Premium',
+                category: 'Seções',
+                content: `
+                    <section data-gjs-type="default" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; background-image: url('../../../public/background-01.jpeg'); background-size: cover; background-position: center; color: #fff; padding: 40px; position: relative; z-index: 50;">
+                        <div style="position:absolute; inset:0; background: linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0.4) 100%); pointer-events: none;"></div>
+                        <div style="z-index: 2; max-width: 800px; position:relative;">
+                            <h1 style="font-family: 'Restweek', serif; font-size: 5rem; color: #C48B71; margin-bottom: 20px;" data-aos="fade-up">Título Incrível</h1>
+                            <p style="font-size: 1.25rem; color: rgba(255,255,255,0.7); margin-bottom: 40px;" data-aos="fade-up" data-aos-delay="100">Uma descrição cativante para converter seus clientes instantaneamente com design premium.</p>
+                            <a href="#" style="background: #C48B71; color: #fff; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600;" data-aos="zoom-in" data-aos-delay="200">Começar Agora</a>
+                        </div>
+                    </section>
+                `
+            });
+            
+            bm.add('bento-grid-section', {
+                label: 'Bento Grid',
+                category: 'Seções',
+                content: `
+                    <section style="padding: 6rem 24px; background: #0a0a0a; position: relative; z-index: 50;">
+                        <div style="max-width:1200px; margin:0 auto;">
+                            <div style="text-align:center; margin-bottom:3rem;" data-aos="fade-up">
+                                <h2 style="font-family:'Restweek',serif; font-size:3rem; color:#C48B71;">Descubra Mais</h2>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                                <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2.5rem; min-height: 350px; display:flex; flex-direction:column; justify-content:flex-end;" data-aos="fade-up" data-aos-delay="100">
+                                    <h3 style="font-family:'Restweek',serif; font-size:2rem; color:#C48B71; margin:0 0 10px 0;">Item 1</h3>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2.5rem; min-height: 350px; display:flex; flex-direction:column; justify-content:flex-end;" data-aos="fade-up" data-aos-delay="200">
+                                    <h3 style="font-family:'Restweek',serif; font-size:2rem; color:#C48B71; margin:0 0 10px 0;">Item 2</h3>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2.5rem; min-height: 350px; display:flex; flex-direction:column; justify-content:flex-end;" data-aos="fade-up" data-aos-delay="300">
+                                    <h3 style="font-family:'Restweek',serif; font-size:2rem; color:#C48B71; margin:0 0 10px 0;">Item 3</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                `
+            });
+
+            bm.add('glass-container', {
+                label: 'Container Glass',
+                category: 'Estrutura',
+                content: `
+                    <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; max-width: 1200px; margin: 40px auto; color:#fff; position: relative; z-index: 50;">
+                        <h3 style="margin-top:0; font-family:'Restweek',serif; color:#C48B71;">Glass Container</h3>
+                        <p>Arraste elementos para cá.</p>
+                    </div>
+                `
+            });
+
+            bm.add('grid-2', {
+                label: 'Grid 2 Colunas',
+                category: 'Estrutura',
+                content: `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 20px; position: relative; z-index: 50;">
+                        <div style="min-height: 100px; background: rgba(255,255,255,0.05); border-radius: 8px;"></div>
+                        <div style="min-height: 100px; background: rgba(255,255,255,0.05); border-radius: 8px;"></div>
+                    </div>
+                `
+            });
+
+            bm.add('text', {
+                label: 'Texto Livre',
+                category: 'Básicos',
+                content: '<div style="color: #fff; font-size:1rem; padding:10px; position: relative; z-index: 50; font-family: \'Lato\', sans-serif;">Insira seu texto aqui. (Duplo clique para editar)</div>'
+            });
+
+            bm.add('image', {
+                label: 'Imagem',
+                category: 'Básicos',
+                content: { type: 'image', style: { position: 'relative', 'z-index': 50 } }
+            });
+            
+            bm.add('button', {
+                label: 'Botão Padrão',
+                category: 'Básicos',
+                content: '<a href="#" style="display:inline-block; background:#C48B71; color:#fff; padding:10px 20px; border-radius:8px; text-decoration:none; position: relative; z-index: 50; font-family:\'Restweek\', serif;">Clique Aqui</a>'
+            });
+
+            // Keyboard Shortcuts
+            editor.Keymaps.add('core:save', '⌘+s, ctrl+s', () => {
+                savePageData();
+                return false; // Prevent browser save
+            });
+
+            // Add global traits for AOS Animations
+            const defaultType = editor.DomComponents.getType('default');
+            defaultType.model.prototype.defaults.traits.push(
+                {
+                    type: 'select',
+                    label: 'Animação Scroll',
+                    name: 'data-aos',
+                    options: [
+                        { value: '', name: 'Nenhuma' },
+                        { value: 'fade-up', name: 'Surgir Subindo' },
+                        { value: 'fade-down', name: 'Surgir Descendo' },
+                        { value: 'fade-left', name: 'Surgir da Direita' },
+                        { value: 'fade-right', name: 'Surgir da Esquerda' },
+                        { value: 'zoom-in', name: 'Zoom Entrada' },
+                        { value: 'flip-left', name: 'Girar Esquerda' }
+                    ]
+                },
+                {
+                    type: 'number',
+                    label: 'Atraso Animação (ms)',
+                    name: 'data-aos-delay',
+                    placeholder: 'Ex: 200'
+                }
+            );
+
+            // Inject Custom Styles into Canvas so overlays don't block editing
+            editor.on('load', () => {
+                const style = editor.Canvas.getDocument().createElement('style');
+                style.innerHTML = `
+                    /* Make overlays ignore clicks so user can select text/images underneath */
+                    .hero-overlay-deep, .masonry-overlay, .diff-card-overlay, .ed-content-overlay, .section-blurred-bg, [style*="z-index: 0"], [style*="z-index: 1"] {
+                        pointer-events: none !important;
+                    }
+                    /* Ensure all text blocks can be clicked */
+                    .masonry-content, .diff-card-content, .hero-content {
+                        pointer-events: auto !important;
+                        position: relative;
+                        z-index: 20;
+                    }
+                    /* Force animated elements to be visible in the editor */
+                    .reveal-blur, [data-aos] {
+                        opacity: 1 !important;
+                        filter: none !important;
+                        transform: none !important;
+                    }
+                `;
+                editor.Canvas.getDocument().head.appendChild(style);
+            });
+
             await loadPageData();
+            } catch (err) {
+                console.error("FATAL ERROR IN INIT:", err);
+                alert("Erro crítico ao inicializar: " + (err.stack || err.message || err));
+            }
+        }
+
+        window.setDevice = function(device) {
+            editor.setDevice(device);
+            document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
         }
 
         async function loadPageData() {
             try {
-                // Load Page info
-                const { data: pageData, error: pageErr } = await supabase.from('pages').select('title').eq('id', pageId).single();
-                if (pageErr) throw pageErr;
-                document.getElementById('page-title-display').innerText = `Builder: ${pageData.title}`;
+                const { data, error } = await pagesDbClient.from('pages').select('*').eq('id', pageId).single();
+                if(error) throw error;
+                
+                document.getElementById('page-title-display').innerText = `Builder: ${data.title}`;
 
-                // Load Sections
-                const { data: sectionsData, error: secErr } = await supabase
+                if (data.grapesjs_data) {
+                    // Load full project data (JSON containing components and styles)
+                    editor.loadProjectData(data.grapesjs_data);
+                } else if (data.html_content) {
+                    // Fallback to pure HTML if JSON doesn't exist
+                    editor.setComponents(data.html_content);
+                    editor.setStyle(data.css_content || '');
+                } else {
+                    // MIGRATION FEATURE: Load old sections if they exist
+                    await migrateOldPageToGrapes(pageId, data);
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("Erro ao carregar os dados da página.", "error");
+            }
+        }
+
+        async function migrateOldPageToGrapes(pageId, pageData) {
+            try {
+                showToast("Migrando página antiga para o novo sistema...", "warning");
+                const { data: sections, error } = await pagesDbClient
                     .from('page_sections')
                     .select('*, section_items(*)')
                     .eq('page_id', pageId)
                     .order('sort_order', { ascending: true });
-                
-                if (secErr) throw secErr;
 
-                sections = (sectionsData || []).map(sec => {
-                    // Normalize items
-                    const items = sec.section_items ? sec.section_items.map(item => typeof item.content === 'string' ? JSON.parse(item.content) : item.content) : [];
-                    return {
-                        id: sec.id,
-                        type: sec.section_type,
-                        config: sec.config || {},
-                        items: items,
-                        isNew: false
-                    };
+                if (error || !sections || sections.length === 0) {
+                    showToast("Aplicando template padrão premium...", "success");
+                    try {
+                        // Faz o fetch da home original para usar como ponto de partida
+                        const response = await fetch('../../../index.html');
+                        if (response.ok) {
+                            const text = await response.text();
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(text, 'text/html');
+                            
+                            // Remove elementos estáticos que não devem ir pro builder (Header, Footer, Scripts)
+                            doc.querySelector('#header')?.remove();
+                            doc.querySelector('#footer')?.remove();
+                            doc.querySelectorAll('script').forEach(s => s.remove());
+                            
+                            // Pega o conteúdo final
+                            let defaultHtml = doc.body.innerHTML.trim();
+                            
+                            // Ajusta os caminhos relativos (imagens e links) para funcionarem dentro do builder
+                            defaultHtml = defaultHtml.replace(/(['"\(])public\//g, '$1../../../public/');
+                            defaultHtml = defaultHtml.replace(/(['"\(])src\//g, '$1../../../src/');
+                            
+                            // Injeta no canvas
+                            editor.setComponents(defaultHtml);
+                        } else {
+                            showToast("Página em branco. Pode começar a editar!");
+                        }
+                    } catch(e) {
+                        console.error("Erro ao puxar template:", e);
+                        showToast("Página em branco. Pode começar a editar!");
+                    }
+                    return;
+                }
+
+                let html = '';
+
+                sections.forEach(sec => {
+                    const config = sec.config || {};
+                    const items = (sec.section_items || []).sort((a,b) => a.sort_order - b.sort_order).map(item => {
+                        let parsed = {};
+                        try { if(item.content) parsed = typeof item.content === 'string' ? JSON.parse(item.content) : item.content; } catch(e){}
+                        return { ...item, ...parsed };
+                    });
+
+                    if (sec.section_type === 'hero') {
+                        const bgImg = config.background_image || '../../public/background-01.jpeg';
+                        const heroTitle = config.title || pageData.title;
+                        html += `
+                        <div class="snap-section hero-wrapper" style="position:relative; width:100%;">
+                            <section class="hero" style="position:absolute; inset:0; width:100%; height:100%;">
+                                <div class="hero-bg" style="background-image: url('${bgImg}'); background-size: cover; background-position: center; position:absolute; inset:0;"></div>
+                                <div class="hero-overlay-deep" style="position:absolute; inset:0; background: linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0.4) 100%);"></div>
+                                <div class="container hero-content" style="position:relative; z-index:10; padding-top: 15rem; text-align: center; height:100%; display:flex; flex-direction:column; justify-content:center;">
+                                    <h1 style="font-family:'Restweek',serif; font-size:4rem; color:#C48B71;">${heroTitle}</h1>
+                                    <p style="font-size:1.2rem; color:#fff; max-width: 600px; margin: 2rem auto 0;">${config.description || pageData.description || ''}</p>
+                                    ${config.cta_text ? `<a href="${config.cta_link || '#'}" style="margin: 3rem auto 0; display:inline-block; background:#C48B71; padding:12px 24px; color:#fff; border-radius:8px; text-decoration:none;">${config.cta_text}</a>` : ''}
+                                </div>
+                            </section>
+                        </div>`;
+                    } else if (sec.section_type === 'text') {
+                        html += `
+                        <section class="section-tight" style="padding: ${config.padding || '6rem 0'}; background:#0a0a0a;">
+                            <div class="container" style="max-width: 800px; margin: 0 auto; text-align: ${config.alignment || 'left'}; color:#fff;">
+                                ${config.title ? `<h2 style="font-family:'Restweek',serif; font-size:3rem; color:#C48B71; margin-bottom: 2rem;">${config.title}</h2>` : ''}
+                                <div style="font-size: 1.1rem; line-height: 1.8;">${config.content || ''}</div>
+                            </div>
+                        </section>`;
+                    } else if (sec.section_type === 'bento_grid') {
+                        html += `
+                        <section style="padding: 6rem 24px; background: #0a0a0a;">
+                            <div style="max-width:1200px; margin:0 auto;">
+                                ${config.title ? `<div style="text-align:center; margin-bottom:3rem;"><h2 style="font-family:'Restweek',serif; font-size:3rem; color:#C48B71;">${config.title}</h2></div>` : ''}
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                        `;
+                        items.forEach(item => {
+                            html += `
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 2.5rem; position:relative; overflow:hidden; min-height:300px; display:flex; flex-direction:column; justify-content:flex-end;">
+                                ${item.image_url ? `<div style="position:absolute; inset:0; background-image:url('${item.image_url}'); background-size:cover; opacity:0.4;"></div>` : ''}
+                                <div style="position:relative; z-index:1;">
+                                    <h3 style="font-family:'Restweek',serif; font-size:2rem; color:#C48B71; margin:0 0 10px 0;">${item.title || ''}</h3>
+                                    <p style="color:#ddd; margin:0; line-height:1.4;">${item.description || ''}</p>
+                                </div>
+                            </div>`;
+                        });
+                        html += `</div></div></section>`;
+                    }
                 });
 
-                renderCanvas();
-            } catch (error) {
-                console.error(error);
-                showToast('Erro ao carregar dados. ' + error.message, 'error');
+                editor.setComponents(html);
+                showToast("Layout antigo convertido com sucesso! Salve para persistir as mudanças.", "success");
+            } catch(e) {
+                console.error(e);
+                showToast("Erro ao converter página antiga.", "error");
             }
         }
 
-        function generateTempId() {
-            return 'temp_' + Math.random().toString(36).substr(2, 9);
-        }
+        async function savePageData() {
+            showToast("Salvando...");
+            const html = editor.getHtml();
+            const css = editor.getCss();
+            const projectData = editor.getProjectData(); // Saves everything (Undo stack, components, styles, etc)
 
-        function addSection(type) {
-            const newSec = {
-                id: generateTempId(),
-                type: type,
-                config: {},
-                items: [],
-                isNew: true
-            };
-            sections.push(newSec);
-            renderCanvas();
-            selectSection(newSec.id);
-        }
-
-        function renderCanvas() {
-            const canvas = document.getElementById('canvas-area');
-            const empty = document.getElementById('empty-canvas');
-            
-            // Clear existing section DOMs
-            document.querySelectorAll('.canvas-section').forEach(e => e.remove());
-
-            if (sections.length === 0) {
-                empty.style.display = 'flex';
-                return;
-            }
-            empty.style.display = 'none';
-
-            sections.forEach((sec, idx) => {
-                const info = SECTION_TYPES[sec.type];
-                const el = document.createElement('div');
-                el.className = `canvas-section ${activeSectionId === sec.id ? 'active' : ''}`;
-                el.dataset.id = sec.id;
-                el.onclick = (e) => {
-                    if(!e.target.closest('button')) selectSection(sec.id);
-                };
-                
-                el.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-grip-vertical handle"></i>
-                        <i class="fas ${info.icon} text-accent"></i>
-                        <span>${info.name}</span>
-                    </div>
-                    <div class="canvas-actions">
-                        <button class="btn-icon text-danger" onclick="removeSection('${sec.id}')" title="Remover"><i class="fas fa-trash"></i></button>
-                    </div>
-                `;
-                canvas.appendChild(el);
-            });
-        }
-
-        function selectSection(id) {
-            activeSectionId = id;
-            renderCanvas(); // Update active class
-            renderConfigPanel();
-        }
-
-        function removeSection(id) {
-            if(!confirm('Remover esta seção?')) return;
-            sections = sections.filter(s => s.id !== id);
-            if(activeSectionId === id) activeSectionId = null;
-            renderCanvas();
-            renderConfigPanel();
-        }
-
-        function renderConfigPanel() {
-            const panel = document.getElementById('config-panel');
-            if (!activeSectionId) {
-                panel.innerHTML = '<p class="text-muted text-sm text-center mt-4">Selecione uma seção no centro para configurá-la.</p>';
-                return;
-            }
-
-            const sec = sections.find(s => s.id === activeSectionId);
-            const info = SECTION_TYPES[sec.type];
-            let html = `<h4 class="mb-3 text-accent">${info.name}</h4>`;
-            
-            // Base Form Config Fields based on Type
-            html += `<form id="section-config-form" onsubmit="event.preventDefault()" oninput="updateSectionConfig()">`;
-            
-            const field = (name, label, type='text', placeholder='') => `
-                <div class="form-group">
-                    <label class="form-label">${label}</label>
-                    ${type === 'textarea' 
-                        ? `<textarea name="${name}" class="form-textarea" placeholder="${placeholder}">${sec.config[name] || ''}</textarea>`
-                        : type === 'select'
-                        ? `<select name="${name}" class="form-select">
-                            <option value="left" ${sec.config[name]==='left'?'selected':''}>Esquerda</option>
-                            <option value="right" ${sec.config[name]==='right'?'selected':''}>Direita</option>
-                           </select>`
-                        : `<input type="${type}" name="${name}" class="form-input" value="${sec.config[name] || ''}" placeholder="${placeholder}">`
-                    }
-                </div>
-            `;
-
-            if (sec.type === 'hero') {
-                html += field('title', 'Título');
-                html += field('subtitle', 'Subtítulo');
-                html += field('description', 'Descrição', 'textarea');
-                html += field('background_image', 'URL da Imagem de Fundo');
-                html += field('cta_text', 'Texto do Botão');
-                html += field('cta_link', 'Link do Botão');
-            } else if (sec.type === 'masonry') {
-                html += field('title', 'Título da Seção');
-            } else if (sec.type === 'text_image') {
-                html += field('title', 'Título');
-                html += field('text', 'Texto', 'textarea');
-                html += field('image_url', 'URL da Imagem');
-                html += field('image_position', 'Posição da Imagem', 'select');
-            } else if (sec.type === 'gallery') {
-                html += field('title', 'Título da Galeria');
-            } else if (sec.type === 'cta') {
-                html += field('title', 'Título');
-                html += field('description', 'Descrição', 'textarea');
-                html += field('button_text', 'Texto do Botão');
-                html += field('button_link', 'Link do Botão');
-                html += field('background_color', 'Cor de Fundo', 'color');
-            } else if (sec.type === 'text_block') {
-                html += field('title', 'Título');
-                html += field('content', 'Conteúdo', 'textarea');
-            } else if (sec.type === 'features') {
-                html += field('title', 'Título da Seção');
-            } else if (sec.type === 'glass_card') {
-                html += field('title', 'Título');
-                html += field('description', 'Descrição', 'textarea');
-                html += field('background_image', 'URL da Imagem de Fundo');
-            }
-
-            html += `</form>`;
-
-            // Items List (if applicable)
-            if (info.hasItems) {
-                html += `<div class="mt-4 border-t pt-3" style="border-top:1px solid var(--admin-border)">`;
-                html += `<div class="flex-between mb-3">
-                            <label class="form-label mb-0">Itens</label>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="addItem()"><i class="fas fa-plus"></i> Adicionar</button>
-                         </div>`;
-                html += `<div id="items-container">`;
-                
-                sec.items.forEach((item, index) => {
-                    html += `<div class="item-list-row" data-index="${index}">
-                                <button type="button" class="btn-icon remove-item-btn" onclick="removeItem(${index})"><i class="fas fa-times"></i></button>`;
-                    
-                    if (sec.type === 'masonry') {
-                        html += `<input type="text" class="form-input mb-1 item-input" data-key="title" placeholder="Título" value="${item.title || ''}" oninput="updateItem(${index})">`;
-                        html += `<input type="text" class="form-input mb-1 item-input" data-key="description" placeholder="Descrição" value="${item.description || ''}" oninput="updateItem(${index})">`;
-                        html += `<input type="text" class="form-input mb-1 item-input" data-key="image_url" placeholder="URL Imagem" value="${item.image_url || ''}" oninput="updateItem(${index})">`;
-                        html += `<input type="text" class="form-input item-input" data-key="link_url" placeholder="URL Link" value="${item.link_url || ''}" oninput="updateItem(${index})">`;
-                    } else if (sec.type === 'gallery') {
-                        html += `<input type="text" class="form-input mb-1 item-input" data-key="image_url" placeholder="URL Imagem" value="${item.image_url || ''}" oninput="updateItem(${index})">`;
-                        html += `<input type="text" class="form-input item-input" data-key="alt_text" placeholder="Texto Alt" value="${item.alt_text || ''}" oninput="updateItem(${index})">`;
-                    } else if (sec.type === 'features') {
-                        html += `<input type="text" class="form-input mb-1 item-input" data-key="icon" placeholder="Ícone (Emoji)" value="${item.icon || ''}" oninput="updateItem(${index})">`;
-                        html += `<input type="text" class="form-input mb-1 item-input" data-key="title" placeholder="Título" value="${item.title || ''}" oninput="updateItem(${index})">`;
-                        html += `<input type="text" class="form-input item-input" data-key="description" placeholder="Descrição" value="${item.description || ''}" oninput="updateItem(${index})">`;
-                    }
-                    html += `</div>`;
-                });
-                
-                html += `</div></div>`;
-            }
-
-            panel.innerHTML = html;
-        }
-
-        window.updateSectionConfig = function() {
-            if(!activeSectionId) return;
-            const sec = sections.find(s => s.id === activeSectionId);
-            const formData = new FormData(document.getElementById('section-config-form'));
-            sec.config = Object.fromEntries(formData.entries());
-        };
-
-        window.addItem = function() {
-            if(!activeSectionId) return;
-            const sec = sections.find(s => s.id === activeSectionId);
-            sec.items.push({});
-            renderConfigPanel();
-        };
-
-        window.removeItem = function(index) {
-            if(!activeSectionId) return;
-            const sec = sections.find(s => s.id === activeSectionId);
-            sec.items.splice(index, 1);
-            renderConfigPanel();
-        };
-
-        window.updateItem = function(index) {
-            if(!activeSectionId) return;
-            const sec = sections.find(s => s.id === activeSectionId);
-            const row = document.querySelector(`.item-list-row[data-index="${index}"]`);
-            const inputs = row.querySelectorAll('.item-input');
-            const itemData = {};
-            inputs.forEach(inp => {
-                itemData[inp.dataset.key] = inp.value;
-            });
-            sec.items[index] = itemData;
-        };
-
-        async function savePageConfig() {
-            showToast('Salvando...', 'warning');
             try {
-                // Delete existing sections to fully replace them (simpler syncing)
-                // First, fetch current section IDs for this page to delete their items just in case CASCADE isn't on
-                const { data: oldSecs } = await supabase.from('page_sections').select('id').eq('page_id', pageId);
-                if (oldSecs && oldSecs.length > 0) {
-                    const ids = oldSecs.map(s => s.id);
-                    await supabase.from('section_items').delete().in('section_id', ids);
-                    await supabase.from('page_sections').delete().eq('page_id', pageId);
-                }
+                const { error } = await pagesDbClient.from('pages').update({
+                    html_content: html,
+                    css_content: css,
+                    grapesjs_data: projectData
+                }).eq('id', pageId);
 
-                // Insert new sections
-                for (let i = 0; i < sections.length; i++) {
-                    const sec = sections[i];
-                    
-                    const { data: insertedSec, error: insErr } = await supabase.from('page_sections').insert([{
-                        page_id: pageId,
-                        section_type: sec.type,
-                        config: sec.config,
-                        sort_order: i
-                    }]).select().single();
-
-                    if (insErr) throw insErr;
-
-                    // Insert items if any
-                    if (sec.items && sec.items.length > 0) {
-                        const itemsToInsert = sec.items.map((item, itemIdx) => ({
-                            section_id: insertedSec.id,
-                            content: JSON.stringify(item),
-                            sort_order: itemIdx
-                        }));
-                        const { error: itemErr } = await supabase.from('section_items').insert(itemsToInsert);
-                        if (itemErr) throw itemErr;
-                    }
-                }
-
-                showToast('Página salva com sucesso!');
-                // Reload to sync new IDs
-                await loadPageData();
-            } catch (error) {
-                console.error(error);
-                showToast('Erro ao salvar: ' + error.message, 'error');
+                if(error) throw error;
+                showToast("Layout salvo com sucesso!");
+            } catch(e) {
+                showToast("Erro ao salvar: " + e.message, "error");
             }
         }
 
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
-    <script src="../../js/admin-sidebar.js"></script>
 </body>
 </html>

@@ -7,6 +7,7 @@
     <meta name="description" id="metaDescription" content="A Experiência Definitiva em Carnes Nobres">
     <link rel="stylesheet" href="../css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <style>
         .loading-screen {
             min-height: 80vh;
@@ -36,6 +37,90 @@
             padding: 2rem;
         }
         .error-screen h1 { font-family: 'Restweek', serif; font-size: 4rem; color: var(--accent); }
+
+        /* ===== CINEMATIC SCROLL SNAP ===== */
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+        .snap-section {
+            scroll-snap-align: start;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* ===== BENTO GRID GLASS-MORPHISM ===== */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            grid-auto-rows: 300px;
+            width: 100%;
+        }
+        .bento-item {
+            background: rgba(12, 10, 8, 0.5);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2), inset 0 1px 0 0 rgba(255,255,255,0.05);
+        }
+        .bento-item:hover {
+            transform: translateY(-5px);
+            border-color: rgba(196,139,113,0.3);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.4), inset 0 1px 0 0 rgba(196,139,113,0.2);
+        }
+        .bento-item.span-2 { grid-column: span 2; }
+        .bento-item.span-large { grid-column: span 2; grid-row: span 2; }
+        .bento-item-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.4;
+            z-index: 0;
+            transition: transform 0.7s ease, opacity 0.4s ease;
+        }
+        .bento-item:hover .bento-item-bg {
+            transform: scale(1.08);
+            opacity: 0.6;
+        }
+        .bento-content {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+            margin: -2.5rem;
+            padding: 2.5rem;
+            padding-top: 4rem;
+        }
+        .bento-title {
+            font-family: 'Restweek', serif;
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+        .bento-desc {
+            font-size: 1.1rem;
+            color: #ddd;
+            line-height: 1.4;
+        }
+        @media (max-width: 1024px) {
+            .bento-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .bento-grid { grid-template-columns: 1fr; grid-auto-rows: 250px; }
+            .bento-item.span-2, .bento-item.span-large { grid-column: span 1; grid-row: span 1; }
+        }
     </style>
 </head>
 <body class="dark-theme">
@@ -56,11 +141,20 @@
     <script src="../js/supabase.js"></script>
     
     <script>
-        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let sb;
 
         async function loadDynamicPage() {
+            let attempts = 0;
+            while ((!window.BullPrimeDB || !window.BullPrimeDB.client) && attempts < 30) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+            if (!window.BullPrimeDB || !window.BullPrimeDB.client) {
+                showError('Erro ao inicializar o banco de dados.');
+                return;
+            }
+            sb = window.BullPrimeDB.client;
+
             const urlParams = new URLSearchParams(window.location.search);
             const slug = urlParams.get('page');
             const container = document.getElementById('dynamicContainer');
@@ -84,7 +178,13 @@
                 document.title = page.meta_title || `${page.title} - Bull Prime Premium`;
                 document.getElementById('metaDescription').content = page.meta_description || page.description;
 
-                // 2. Fetch Sections and Items
+                // Se a página foi construída com o GrapesJS (possui html_content)
+                if (page.html_content) {
+                    renderGrapesJsPage(page, container);
+                    return;
+                }
+
+                // Fallback: Busca as Sections e Items (Sistema Antigo)
                 const { data: sections, error: secError } = await sb
                     .from('page_sections')
                     .select(`
@@ -94,14 +194,38 @@
                     .eq('page_id', page.id)
                     .order('sort_order', { ascending: true });
 
-                if (secError) throw secError;
+                if (secError && secError.code !== '42P01') {
+                    // Ignore error if table doesn't exist, just pass empty array
+                    throw secError;
+                }
 
-                renderPage(page, sections, container);
+                renderPage(page, sections || [], container);
 
             } catch (err) {
                 console.error(err);
                 showError('Página não encontrada ou indisponível no momento.');
             }
+        }
+
+        function renderGrapesJsPage(page, container) {
+            // Injeta o CSS salvo no head
+            if (page.css_content) {
+                const style = document.createElement('style');
+                style.innerHTML = page.css_content;
+                document.head.appendChild(style);
+            }
+            
+            // Injeta o HTML diretamente no container
+            container.innerHTML = page.html_content;
+            
+            // Re-initialize animations since DOM just changed
+            if(window.BullPrimeAnimations) {
+                window.BullPrimeAnimations.init();
+            }
+
+            // Corrige altura se a tela estiver muito curta
+            container.style.minHeight = '100vh';
+            container.style.display = 'block';
         }
 
         function renderPage(page, sections, container) {
@@ -132,27 +256,62 @@
 
                 switch(sec.section_type) {
                     case 'hero':
-                        const bgImg = config.bgImage || '../../public/background-01.jpeg';
+                        const bgImg = config.background_image || '../../public/background-01.jpeg';
                         const heroTitle = config.title || page.title;
                         
                         html += `
-                        <div class="hero-wrapper">
-                            <section class="hero" style="position:relative;">
+                        <div class="snap-section hero-wrapper" style="position:relative;">
+                            <section class="hero" style="position:absolute; inset:0; width:100%; height:100%;">
                                 <div class="hero-bg" style="background-image: url('${bgImg}');"></div>
                                 <div class="hero-overlay-deep"></div>
-                                <div class="container hero-content" style="padding-top: 15rem; text-align: center;">
+                                <div class="container hero-content" style="padding-top: 15rem; text-align: center; height:100%; display:flex; flex-direction:column; justify-content:center;">
                                     <h1 class="hero-title-group">
                                         <span class="hero-title-sans text-accent-glow">${heroTitle}</span>
                                     </h1>
                                     <p class="hero-description" style="max-width: 600px; margin: 0 auto; margin-top: 2rem;">
-                                        ${config.subtitle || page.description || ''}
+                                        ${config.description || page.description || ''}
                                     </p>
+                                    ${config.cta_text ? `<a href="${config.cta_link || '#'}" class="btn-primary" style="margin: 3rem auto 0; display:inline-block;">${config.cta_text}</a>` : ''}
                                 </div>
                             </section>
                         </div>
                         `;
                         break;
                     
+                    case 'bento_grid':
+                        html += `
+                        <section class="snap-section section-tight" style="padding: 6rem 0; background: var(--bg-dark);">
+                            <div class="container">
+                                ${config.title ? `<div class="text-center mb-5">
+                                    <h2 class="hero-title-sans text-accent-glow" style="font-size:3rem;">${config.title}</h2>
+                                    ${config.subtitle ? `<p style="font-size:1.2rem; color:#888; margin-top:1rem;">${config.subtitle}</p>` : ''}
+                                </div>` : ''}
+                                <div class="bento-grid">
+                        `;
+                        
+                        items.forEach((item) => {
+                            let spanClass = '';
+                            if (item.span === '2') spanClass = 'span-2';
+                            if (item.span === 'large') spanClass = 'span-large';
+                            
+                            html += `
+                                <div class="bento-item ${spanClass}">
+                                    ${item.image_url ? `<div class="bento-item-bg" style="background-image: url('${item.image_url}')"></div>` : ''}
+                                    <div class="bento-content">
+                                        <h3 class="bento-title">${item.title || ''}</h3>
+                                        <p class="bento-desc">${item.description || ''}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        html += `
+                                </div>
+                            </div>
+                        </section>
+                        `;
+                        break;
+                        
                     case 'text':
                         html += `
                         <section class="section-tight" style="padding: ${config.padding || '6rem 0'};">
@@ -209,5 +368,14 @@
     </script>
     <script src="../components/header.js"></script>
     <script src="../components/footer.js"></script>
+    <script src="../js/animations.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+    </script>
 </body>
 </html>

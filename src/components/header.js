@@ -79,58 +79,65 @@ const renderHeader = async () => {
       }
   });
 
-  // Carregar páginas customizadas dinamicamente
+  // ==========================================
+  // CARREGAR LINKS DA NAVBAR VIA SUPABASE
+  // ==========================================
   try {
-      const CACHE_KEY = 'bp_nav_pages';
-      let customPages = [];
+      const CACHE_KEY = 'bp_navbar_links_v2';
+      let linksData = null;
       const cached = localStorage.getItem(CACHE_KEY);
       
       if (cached) {
-          customPages = JSON.parse(cached);
-      } else if (window.supabase) {
-          // Precisamos instanciar o Supabase localmente para garantir o fetch caso o db.js não esteja pronto
+          linksData = JSON.parse(cached);
+      } 
+      
+      if (window.supabase && (!linksData || linksData.length === 0)) {
           const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
           const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
           const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
           
           const { data, error } = await sb
-              .from('pages')
-              .select('title, slug')
-              .eq('status', 'published')
-              .eq('is_system', false)
-              .order('created_at', { ascending: true });
+              .from('navbar_links')
+              .select('label, url')
+              .order('sort_order', { ascending: true });
               
-          if (!error && data) {
-              customPages = data;
+          if (!error && data && data.length > 0) {
+              linksData = data;
               localStorage.setItem(CACHE_KEY, JSON.stringify(data));
           }
       }
 
-      if (customPages && customPages.length > 0) {
-          customPages.forEach(page => {
-              const link = document.createElement('a');
+      const navLinksContainer = headerContainer.querySelector('#mainNavLinks');
+      // Não limpa o HTML, os links dinâmicos serão anexados (append) após os fixos!
+      
+      if (linksData && linksData.length > 0) {
+          // Renderizar links no HTML
+          linksData.forEach(linkObj => {
+              const a = document.createElement('a');
               
-              // Resolve correct relative path depending on where we are
-              let basePath = '/src/pages/dynamic.html';
-              if (currentPath.includes('/pages/')) {
-                  basePath = 'dynamic.html';
-              } else if (currentPath.includes('/admin/')) {
-                  basePath = '../dynamic.html';
-              }
-              
-              const fullUrl = `${basePath}?page=${page.slug}`;
-              link.href = fullUrl;
-              link.className = 'nav-link';
-              link.textContent = page.title.toUpperCase();
-              
-              // Se estivermos na página atual
-              if (currentSearch.includes(`page=${page.slug}`)) {
-                  link.classList.add('active');
-              }
-              
-              navLinks.appendChild(link);
-          });
-      }
+              // Tratamento para caminhos relativos
+          let finalUrl = linkObj.url;
+          if (finalUrl.startsWith('dynamic:')) {
+              // Exemplo de uso futuro: dynamic:pagina-teste -> /src/pages/dynamic.html?page=pagina-teste
+              const slug = finalUrl.replace('dynamic:', '');
+              finalUrl = currentPath.includes('/pages/') ? `dynamic.html?page=${slug}` : `/src/pages/dynamic.html?page=${slug}`;
+          }
+          
+          a.href = finalUrl;
+          a.className = 'nav-link';
+          a.textContent = linkObj.label.toUpperCase();
+          
+          // Lógica de Highlight ativo
+          if (finalUrl === '/' && currentPath === '/') {
+              a.classList.add('active');
+          } else if (finalUrl !== '/' && (currentPath.includes(finalUrl) || currentSearch.includes(finalUrl.split('?')[1]))) {
+              a.classList.add('active');
+          }
+          
+          navLinksContainer.appendChild(a);
+      });
+      } // Fim do if (linksData && linksData.length > 0)
+
   } catch (err) {
       console.warn("Could not load dynamic navigation links", err);
   }

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar | Bull Prime Premium</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.88rem;
+            outline: none;
+            margin-top: 5px;
+        }
+        .form-group input:focus {
+            border-color: rgba(196,139,113,0.5);
+            background: rgba(255,255,255,0.06);
+        }
+        
+        /* Table overrides for God Mode admin */
+        .admin-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+        .admin-table th {
+            text-align: left;
+            padding: 15px;
+            color: rgba(255,255,255,0.5);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+        .admin-table td {
+            background: rgba(255,255,255,0.02);
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .admin-table td:first-child {
+            border-left: 1px solid rgba(255,255,255,0.05);
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+        .admin-table td:last-child {
+            border-right: 1px solid rgba(255,255,255,0.05);
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="/public/logo.png" style="height:40px; filter: drop-shadow(0 0 10px rgba(196,139,113,0.3));" alt="Bull Prime">
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">PRINCIPAL</div>
+                <a href="dashboard.html" class="sidebar-link "><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="pages.html" class="sidebar-link "><i class="fas fa-file-alt"></i> Páginas</a>
+                <a href="navbar.html" class="sidebar-link active"><i class="fas fa-bars"></i> Navbar</a>
+                <div class="sidebar-section-label">CONTEÚDO</div>
+                <a href="blog.html" class="sidebar-link "><i class="fas fa-pen-nib"></i> Blog</a>
+                <div class="sidebar-section-label">NEGÓCIOS</div>
+                <a href="contacts.html" class="sidebar-link "><i class="fas fa-envelope"></i> Mensagens</a>
+                <div class="sidebar-section-label">SISTEMA</div>
+                <a href="settings.html" class="sidebar-link "><i class="fas fa-cog"></i> Configurações</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <h2>Links da Navbar</h2>
+                <button class="btn btn-primary" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Adicionar Link
+                </button>
+            </header>
+
+            <div class="content-panel">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Ordem</th>
+                            <th>Label</th>
+                            <th>URL / Destino</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="links-tbody">
+                        <!-- Links inseridos via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="link-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="modal-title">Novo Link</h3>
+                <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="link-form">
+                    <input type="hidden" id="link-id">
+                    
+                    <div class="form-group">
+                        <label>Label (Ex: SOBRE NÓS)</label>
+                        <input type="text" id="link-label" required>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>URL (Ex: /src/pages/sobre.html)</label>
+                        <input type="text" id="link-url" required>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>Ordem de Exibição (Número)</label>
+                        <input type="number" id="link-order" value="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveLink()">Salvar Link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:9999;"></div>
+
+    <script src="../../js/supabase.js"></script>
+    <script>
+        let dbClient;
+
+        function showToast(msg, type='success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.style = `background: ${type==='success'?'#2e7d32':'#d32f2f'}; color:white; padding:12px 24px; border-radius:8px; margin-top:10px; box-shadow:0 10px 30px rgba(0,0,0,0.3); font-weight:500; animation:slideIn 0.3s ease;`;
+            toast.innerHTML = msg;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=>toast.remove(), 300); }, 3000);
+        }
+
+        async function initApp() {
+            let attempts = 0;
+            while ((!window.BullPrimeDB || !window.BullPrimeDB.client) && attempts < 30) {
+                await new Promise(r => setTimeout(r, 100)); attempts++;
+            }
+            if(!window.BullPrimeDB || !window.BullPrimeDB.client) {
+                showToast("Erro de conexão", "error"); return;
+            }
+            dbClient = window.BullPrimeDB.client;
+            loadLinks();
+        }
+
+        async function loadLinks() {
+            try {
+                const { data, error } = await dbClient
+                    .from('navbar_links')
+                    .select('*')
+                    .order('sort_order', { ascending: true });
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('links-tbody');
+                tbody.innerHTML = '';
+                
+                if(!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum link encontrado. Crie um.</td></tr>';
+                    return;
+                }
+
+                data.forEach(link => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight:bold; color: #C48B71;">${link.sort_order}</td>
+                        <td style="font-weight:600; text-transform:uppercase;">${link.label}</td>
+                        <td style="color:rgba(255,255,255,0.6);">${link.url}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" onclick='editLink(${JSON.stringify(link).replace(/'/g, "&apos;")})' title="Editar"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon" style="color:#d32f2f;" onclick="deleteLink('${link.id}')" title="Excluir"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error(err);
+                showToast("Erro ao carregar links", "error");
+            }
+        }
+
+        function openModal() {
+            document.getElementById('modal-title').innerText = 'Novo Link';
+            document.getElementById('link-form').reset();
+            document.getElementById('link-id').value = '';
+            document.getElementById('link-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('link-modal').classList.remove('active');
+        }
+
+        function editLink(link) {
+            document.getElementById('modal-title').innerText = 'Editar Link';
+            document.getElementById('link-id').value = link.id;
+            document.getElementById('link-label').value = link.label;
+            document.getElementById('link-url').value = link.url;
+            document.getElementById('link-order').value = link.sort_order;
+            document.getElementById('link-modal').classList.add('active');
+        }
+
+        async function saveLink() {
+            const id = document.getElementById('link-id').value;
+            const label = document.getElementById('link-label').value;
+            const url = document.getElementById('link-url').value;
+            const sort_order = parseInt(document.getElementById('link-order').value) || 0;
+
+            if(!label || !url) { showToast("Preencha label e url", "error"); return; }
+
+            const payload = { label, url, sort_order };
+
+            try {
+                if (id) {
+                    const { error } = await dbClient.from('navbar_links').update(payload).eq('id', id);
+                    if (error) throw error;
+                    showToast("Link atualizado!");
+                } else {
+                    const { error } = await dbClient.from('navbar_links').insert([payload]);
+                    if (error) throw error;
+                    showToast("Link criado!");
+                }
+                closeModal();
+                loadLinks();
+            } catch (err) {
+                console.error(err);
+                showToast("Erro ao salvar", "error");
+            }
+        }
+
+        async function deleteLink(id) {
+            if(!confirm("Tem certeza que deseja excluir este link?")) return;
+            try {
+                const { error } = await dbClient.from('navbar_links').delete().eq('id', id);
+                if (error) throw error;
+                showToast("Excluído com sucesso!");
+                loadLinks();
+            } catch (err) {
+                console.error(err);
+                showToast("Erro ao excluir", "error");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

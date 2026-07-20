@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Páginas | Bull Prime Premium</title>
@@ -13,6 +16,124 @@
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
         }
+
+        /* ===== GLASS-MORPHISM MODAL ===== */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        
+        .modal-overlay .modal-content {
+            background: rgba(12, 10, 8, 0.65);
+            backdrop-filter: blur(40px) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255,255,255,0.1);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 11px 14px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--admin-text, #fff);
+            font-size: 0.88rem;
+            transition: all 0.25s ease;
+            outline: none;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: rgba(196,139,113,0.5);
+            box-shadow: 0 0 15px rgba(196,139,113,0.15);
+            background: rgba(255,255,255,0.06);
+        }
+
+        .form-group select option {
+            background: #1a1715;
+            color: #fff;
+        }
+
+        /* Enhanced Modal for Settings (Tabs) */
+        .modal-content.large-modal {
+            max-width: 800px;
+            width: 95%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-body.scrollable {
+            overflow-y: auto;
+            padding: 1.5rem;
+            flex: 1;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .form-grid.full { grid-template-columns: 1fr; }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        .checkbox-group input { width: 20px; height: 20px; cursor:pointer; }
+        .checkbox-group label { cursor:pointer; font-weight: 500; color: #fff; margin-bottom:0; }
+
+        /* Tabs UI */
+        .modal-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1.5rem;
+        }
+        .modal-tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            color: rgba(255,255,255,0.5);
+            font-weight: 500;
+            transition: 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .modal-tab.active {
+            color: #C48B71;
+            border-bottom-color: #C48B71;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Quick Create Modal */
+        .modal-content.small-modal {
+            max-width: 450px;
+            text-align: center;
+            padding: 2.5rem;
+        }
+        .modal-content.small-modal h3 { font-size: 1.8rem; margin-bottom: 0.5rem; color: #fff; }
+        .modal-content.small-modal p { color: rgba(255,255,255,0.5); margin-bottom: 2rem; }
+        .quick-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 10px;
+            outline: none;
+            margin-bottom: 2rem;
+            transition: border-color 0.3s;
+        }
+        .quick-input:focus { border-bottom-color: #C48B71; }
     </style>
 </head>
 <body>
@@ -24,21 +145,15 @@
             </div>
             <nav class="sidebar-nav">
                 <div class="sidebar-section-label">PRINCIPAL</div>
-                <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="dashboard.html" class="sidebar-link "><i class="fas fa-chart-line"></i> Dashboard</a>
                 <a href="pages.html" class="sidebar-link active"><i class="fas fa-file-alt"></i> Páginas</a>
-                <a href="media.html" class="sidebar-link"><i class="fas fa-images"></i> Mídia</a>
-
+                <a href="navbar.html" class="sidebar-link "><i class="fas fa-bars"></i> Navbar</a>
                 <div class="sidebar-section-label">CONTEÚDO</div>
-                <a href="blog.html" class="sidebar-link"><i class="fas fa-pen-nib"></i> Blog</a>
-                <a href="cuts.html" class="sidebar-link"><i class="fas fa-utensils"></i> Catálogo</a>
-
+                <a href="blog.html" class="sidebar-link "><i class="fas fa-pen-nib"></i> Blog</a>
                 <div class="sidebar-section-label">NEGÓCIOS</div>
-                <a href="units.html" class="sidebar-link"><i class="fas fa-store"></i> Unidades</a>
-                <a href="events.html" class="sidebar-link"><i class="fas fa-calendar-alt"></i> Eventos</a>
-                <a href="contacts.html" class="sidebar-link"><i class="fas fa-envelope"></i> Mensagens</a>
-
+                <a href="contacts.html" class="sidebar-link "><i class="fas fa-envelope"></i> Mensagens</a>
                 <div class="sidebar-section-label">SISTEMA</div>
-                <a href="settings.html" class="sidebar-link"><i class="fas fa-cog"></i> Configurações</a>
+                <a href="settings.html" class="sidebar-link "><i class="fas fa-cog"></i> Configurações</a>
             </nav>
         </aside>
 
@@ -46,7 +161,7 @@
         <main class="admin-main">
             <header class="admin-topbar">
                 <h2>Gerenciar Páginas</h2>
-                <button class="btn btn-primary" onclick="openModal()">
+                <button class="btn btn-primary" onclick="openQuickCreate()">
                     <i class="fas fa-plus"></i> Nova Página
                 </button>
             </header>
@@ -57,67 +172,158 @@
         </main>
     </div>
 
-    <!-- Modal Form -->
+    <!-- Quick Create Modal -->
+    <div id="quick-create-modal" class="modal-overlay">
+        <div class="modal-content small-modal">
+            <h3>Nova Página</h3>
+            <p>Dê um nome para começar a construir sua página.</p>
+            <input type="text" id="quick-page-title" class="quick-input" placeholder="Ex: Contato, Serviços..." onkeypress="if(event.key === 'Enter') quickCreatePage()">
+            <button class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; border-radius:12px;" onclick="quickCreatePage()">
+                Criar e Ir para o Builder <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+            <button class="btn btn-secondary mt-3" style="width: 100%;" onclick="closeQuickCreate()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Advanced Settings Modal (Tabs) -->
     <div id="page-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content large-modal">
             <div class="modal-header">
-                <h3 id="modal-title">Nova Página</h3>
+                <h3 id="modal-title">Configurações da Página</h3>
                 <button class="btn-icon" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body">
+            
+            <div class="modal-tabs">
+                <div class="modal-tab active" onclick="switchModalTab('geral')">Geral</div>
+                <div class="modal-tab" onclick="switchModalTab('seo')">SEO & Compartilhamento</div>
+                <div class="modal-tab" onclick="switchModalTab('avancado')">Avançado</div>
+            </div>
+
+            <div class="modal-body scrollable">
                 <form id="page-form" onsubmit="event.preventDefault();">
                     <input type="hidden" id="page-id">
-                    <div class="form-group">
-                        <label class="form-label">Título</label>
-                        <input type="text" id="page-title" class="form-input" required onkeyup="generateSlug()">
+                    
+                    <!-- TAB: GERAL -->
+                    <div id="tab-geral" class="tab-content active">
+                        <div class="form-grid mb-4">
+                            <div class="form-group">
+                                <label class="form-label">Nome da Página (Título interno)</label>
+                                <input type="text" id="page-title" class="form-input" required onkeyup="generateSlug()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">URL (Slug)</label>
+                                <input type="text" id="page-slug" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Categoria</label>
+                                <select id="page-category" class="form-select">
+                                    <option value="landing">Landing Page</option>
+                                    <option value="institucional">Institucional</option>
+                                    <option value="blog">Blog</option>
+                                    <option value="outro">Outro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Autor</label>
+                                <input type="text" id="page-author" class="form-input" placeholder="Nome do criador">
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="page-is-home">
+                                <label for="page-is-home">Definir como Página Inicial (Home)</label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Slug</label>
-                        <input type="text" id="page-slug" class="form-input" required>
+
+                    <!-- TAB: SEO -->
+                    <div id="tab-seo" class="tab-content">
+                        <div class="form-grid mb-4">
+                            <div class="form-group">
+                                <label class="form-label">Título SEO (Aparece no Google e na aba do navegador)</label>
+                                <input type="text" id="page-meta-title" class="form-input" placeholder="Ex: Sobre Nós | Bull Prime">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Meta Descrição</label>
+                                <textarea id="page-meta-desc" class="form-input" rows="3" placeholder="Resumo do conteúdo (Até 160 caracteres)"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Open Graph Image (Capa para WhatsApp/Facebook)</label>
+                                <input type="url" id="page-og-image" class="form-input" placeholder="https://exemplo.com/capa.jpg">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Favicon Específico (Opcional)</label>
+                                <input type="url" id="page-favicon" class="form-input" placeholder="URL da imagem (ico/png)">
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Descrição (Interna)</label>
-                        <textarea id="page-desc" class="form-textarea" rows="2"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Meta Title (SEO)</label>
-                        <input type="text" id="page-meta-title" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Meta Description (SEO)</label>
-                        <textarea id="page-meta-desc" class="form-textarea" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select id="page-status" class="form-select">
-                            <option value="draft">Rascunho</option>
-                            <option value="published">Publicado</option>
-                        </select>
+
+                    <!-- TAB: AVANÇADO -->
+                    <div id="tab-avancado" class="tab-content">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Cor Predominante</label>
+                                <input type="color" id="page-primary-color" class="form-input" value="#C48B71" style="height: 40px; padding: 2px;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Status da Página</label>
+                                <select id="page-status" class="form-select">
+                                    <option value="draft">Rascunho (Não visível)</option>
+                                    <option value="published">Publicado</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Visibilidade</label>
+                                <select id="page-visibility" class="form-select">
+                                    <option value="public">Pública (Todos podem ver)</option>
+                                    <option value="private">Privada (Apenas admin)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Data de Publicação Programada</label>
+                                <input type="datetime-local" id="page-publish-date" class="form-input">
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-                <button class="btn btn-primary" onclick="savePage()">Salvar</button>
+            <div class="modal-footer" style="padding: 1rem 1.5rem; justify-content: flex-end;">
+                <button class="btn btn-secondary mr-2" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="savePageSettings()"><i class="fas fa-save"></i> Salvar Configurações</button>
             </div>
         </div>
     </div>
 
     <div id="toast-container" class="toast-container"></div>
 
+    <script src="../../js/supabase.js"></script>
     <script>
-        const SUPABASE_URL = 'https://vtkinxncxptlqspdzsbi.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0a2lueG5jeHB0bHFzcGR6c2JpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzOTg4NjgsImV4cCI6MjA5OTk3NDg2OH0.tuUwIBLFjKz3o0gQVHU1lZDDUNq1-_N80Ds2_lOA8Kw';
-        let supabase; try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); else alert("Erro de conexão ao carregar o sistema."); } catch(e) { console.error(e); }
+        let pagesDbClient;
+
+        async function initPagesAdmin() {
+            let attempts = 0;
+            while ((!window.BullPrimeDB || !window.BullPrimeDB.client) && attempts < 30) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+            if (window.BullPrimeDB && window.BullPrimeDB.client) {
+                pagesDbClient = window.BullPrimeDB.client;
+                checkAuth().then(loadPages);
+            } else {
+                showToast('Erro ao inicializar o banco de dados.', 'error');
+            }
+        }
 
         async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
+            if (!pagesDbClient) return;
+            try {
+                const { data: { session } } = await pagesDbClient.auth.getSession();
+                if (!session) {
+                    window.location.href = 'login.html';
+                }
+            } catch (e) {
+                console.error(e);
                 window.location.href = 'login.html';
             }
         }
-        checkAuth();
-        
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -134,7 +340,6 @@
         function generateSlug() {
             const title = document.getElementById('page-title').value;
             const id = document.getElementById('page-id').value;
-            // Only auto-generate if it's a new page (no id)
             if (!id) {
                 const slug = title.toLowerCase()
                     .replace(/[áàâã]/g, 'a')
@@ -151,9 +356,9 @@
         }
 
         async function loadPages() {
+            if (!pagesDbClient) return;
             try {
-                // In a real app we'd left join section counts, for now let's just fetch pages
-                const { data: pages, error } = await supabase
+                const { data: pages, error } = await pagesDbClient
                     .from('pages')
                     .select('*')
                     .order('created_at', { ascending: false });
@@ -181,14 +386,17 @@
                     <div class="text-sm text-muted">/${page.slug}</div>
                     
                     <div class="mt-2 pt-2 border-t" style="border-top: 1px solid var(--admin-border); display:flex; gap:1rem; flex-wrap:wrap;">
-                        <button class="btn btn-secondary btn-sm" onclick="if(event) event.preventDefault(); openModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(page)).replace(/'/g, "%27")}')))">
-                            <i class="fas fa-cog"></i> Configs
+                        <button class="btn btn-secondary btn-sm" onclick="if(event) event.preventDefault(); openModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(page)).replace(/'/g, "%27")}')))" title="Configurações">
+                            <i class="fas fa-cog"></i>
                         </button>
-                        <a href="page-builder.html?id=${page.id}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-layer-group"></i> Editar Seções
+                        <a href="page-builder.html?id=${page.id}" class="btn btn-primary btn-sm" title="Editar Seções">
+                            <i class="fas fa-layer-group"></i> Build
+                        </a>
+                        <a href="../dynamic.html?page=${page.slug}" target="_blank" class="btn btn-secondary btn-sm" title="Visualizar Página">
+                            <i class="fas fa-external-link-alt"></i> Ver
                         </a>
                         ${!page.is_system ? `
-                        <button class="btn btn-danger btn-sm" onclick="deletePage('${page.id}')">
+                        <button class="btn btn-danger btn-sm" onclick="deletePage('${page.id}')" title="Excluir">
                             <i class="fas fa-trash"></i>
                         </button>
                         ` : ''}
@@ -197,74 +405,134 @@
             `).join('');
         }
 
-        function openModal(page = null) {
-            const modal = document.getElementById('page-modal');
-            const title = document.getElementById('modal-title');
-            const form = document.getElementById('page-form');
+        function switchModalTab(tabId) {
+            document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+
+        function openQuickCreate() {
+            document.getElementById('quick-page-title').value = '';
+            document.getElementById('quick-create-modal').classList.add('active');
+            setTimeout(() => document.getElementById('quick-page-title').focus(), 100);
+        }
+
+        function closeQuickCreate() {
+            document.getElementById('quick-create-modal').classList.remove('active');
+        }
+
+        async function quickCreatePage() {
+            const title = document.getElementById('quick-page-title').value;
+            if (!title) {
+                showToast('Digite um nome para a página!', 'warning');
+                return;
+            }
             
+            const slug = title.toLowerCase().replace(/[áàâã]/g, 'a').replace(/[éèê]/g, 'e').replace(/[íï]/g, 'i').replace(/[óòôõ]/g, 'o').replace(/[úùü]/g, 'u').replace(/[ç]/g, 'c').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+
+            if (!pagesDbClient) return;
+            
+            showToast('Preparando construtor...', 'success');
+            
+            try {
+                const { data, error } = await pagesDbClient
+                    .from('pages')
+                    .insert([{
+                        title: title,
+                        slug: slug,
+                        status: 'draft',
+                        visibility: 'public',
+                        is_system: false,
+                        category: 'landing'
+                    }])
+                    .select()
+                    .single();
+                    
+                if (error) throw error;
+                
+                // Immediately redirect to the builder
+                window.location.href = `page-builder.html?id=${data.id}`;
+            } catch (err) {
+                showToast('Erro ao criar página: ' + err.message, 'error');
+            }
+        }
+
+        function openModal(page) {
+            const modal = document.getElementById('page-modal');
+            const form = document.getElementById('page-form');
             form.reset();
+            switchModalTab('geral');
             
             if (page) {
-                title.textContent = 'Editar Página';
                 document.getElementById('page-id').value = page.id;
                 document.getElementById('page-title').value = page.title;
                 document.getElementById('page-slug').value = page.slug;
-                document.getElementById('page-desc').value = page.description || '';
+                document.getElementById('page-category').value = page.category || 'landing';
+                document.getElementById('page-author').value = page.author || '';
+                document.getElementById('page-is-home').checked = page.is_home || false;
+                
                 document.getElementById('page-meta-title').value = page.meta_title || '';
                 document.getElementById('page-meta-desc').value = page.meta_description || '';
-                document.getElementById('page-status').value = page.status;
+                document.getElementById('page-og-image').value = page.og_image || '';
+                document.getElementById('page-favicon').value = page.favicon || '';
                 
-                if (page.is_system) {
-                    document.getElementById('page-slug').disabled = true;
-                } else {
-                    document.getElementById('page-slug').disabled = false;
+                document.getElementById('page-primary-color').value = page.primary_color || '#C48B71';
+                document.getElementById('page-status').value = page.status || 'draft';
+                document.getElementById('page-visibility').value = page.visibility || 'public';
+                
+                if (page.publish_date) {
+                    const dateObj = new Date(page.publish_date);
+                    document.getElementById('page-publish-date').value = dateObj.toISOString().slice(0, 16);
                 }
-            } else {
-                title.textContent = 'Nova Página';
-                document.getElementById('page-id').value = '';
-                document.getElementById('page-slug').disabled = false;
+                
+                document.getElementById('page-slug').disabled = page.is_system;
+                modal.classList.add('active');
             }
-            
-            modal.classList.add('active');
         }
 
         function closeModal() {
             document.getElementById('page-modal').classList.remove('active');
         }
 
-        async function savePage() {
+        async function savePageSettings() {
             const id = document.getElementById('page-id').value;
+            if (!id) return; // Only used for editing now
+            
+            let publishDate = document.getElementById('page-publish-date').value;
+            if (publishDate) publishDate = new Date(publishDate).toISOString();
+            else publishDate = null;
+
             const pageData = {
                 title: document.getElementById('page-title').value,
                 slug: document.getElementById('page-slug').value,
-                description: document.getElementById('page-desc').value,
+                category: document.getElementById('page-category').value,
+                author: document.getElementById('page-author').value,
+                is_home: document.getElementById('page-is-home').checked,
+                
                 meta_title: document.getElementById('page-meta-title').value,
                 meta_description: document.getElementById('page-meta-desc').value,
-                status: document.getElementById('page-status').value
+                og_image: document.getElementById('page-og-image').value,
+                favicon: document.getElementById('page-favicon').value,
+                
+                primary_color: document.getElementById('page-primary-color').value,
+                status: document.getElementById('page-status').value,
+                visibility: document.getElementById('page-visibility').value,
+                publish_date: publishDate
             };
 
             if (!pageData.title || !pageData.slug) {
-                showToast('Preencha os campos obrigatórios', 'warning');
+                showToast('O Título e o Slug são obrigatórios', 'warning');
                 return;
             }
 
             try {
-                if (id) {
-                    const { error } = await supabase
-                        .from('pages')
-                        .update(pageData)
-                        .eq('id', id);
-                    if (error) throw error;
-                    showToast('Página atualizada!');
-                } else {
-                    pageData.is_system = false;
-                    const { error } = await supabase
-                        .from('pages')
-                        .insert([pageData]);
-                    if (error) throw error;
-                    showToast('Página criada!');
-                }
-                
+                const { error } = await pagesDbClient
+                    .from('pages')
+                    .update(pageData)
+                    .eq('id', id);
+                if (error) throw error;
+                showToast('Configurações salvas!');
                 closeModal();
                 loadPages();
             } catch (error) {
@@ -274,9 +542,10 @@
 
         async function deletePage(id) {
             if (!confirm('Tem certeza? Isso excluirá todas as seções e dados da página!')) return;
+            if (!pagesDbClient) return;
             
             try {
-                const { error } = await supabase
+                const { error } = await pagesDbClient
                     .from('pages')
                     .delete()
                     .eq('id', id);
@@ -289,7 +558,7 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadPages);
+        document.addEventListener('DOMContentLoaded', initPagesAdmin);
     </script>
     <script src="../../js/admin-sidebar.js"></script>
 </body>
